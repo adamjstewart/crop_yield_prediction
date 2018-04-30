@@ -3,8 +3,12 @@
     [
         {
             "path": ".",
-            "file_exclude_patterns": ["*.pdf"],
-            "folder_exclude_patterns": ["__pycache__"],
+            "folder_exclude_patterns": [
+                "__pycache__",
+                "data",
+                "results",
+                "papers",
+            ],
         }
     ]
 }
