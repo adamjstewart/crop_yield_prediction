@@ -7,7 +7,7 @@ Written by Adam J. Stewart, 2018.
 """
 
 from model.classifier import get_classifier
-from utils.data_tools import preprocess_labels, sample_subset
+from utils.data_tools import filter_core_states
 from utils.io_tools import read_csv
 
 import tensorflow as tf
@@ -46,6 +46,9 @@ def main(args):
     """
     # Read in the dataset
     dataset = read_csv(FLAGS.dataset)
+
+    # Filter down to the 12 core states we care about
+    dataset = filter_core_states(dataset)
 
 
 if __name__ == '__main__':
