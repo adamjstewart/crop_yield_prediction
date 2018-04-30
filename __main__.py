@@ -8,7 +8,7 @@ Written by Adam J. Stewart, 2018.
 
 from model.classifier import get_classifier
 from utils.data_tools import filter_core_states
-from utils.io_tools import read_csv
+from utils.io_tools import read_csv, write_csv
 
 import tensorflow as tf
 
@@ -34,6 +34,10 @@ flags.DEFINE_string(
     name='dataset', default='data/Corn_model_data.csv',
     help='Dataset for yield prediction'
 )
+flags.DEFINE_string(
+    name='output', default='results/predictions.csv',
+    help='Output file to save results in'
+)
 
 
 def main(args):
@@ -49,6 +53,9 @@ def main(args):
 
     # Filter down to the 12 core states we care about
     dataset = filter_core_states(dataset)
+
+    # Write the resulting dataset
+    write_csv(dataset, FLAGS.output)
 
 
 if __name__ == '__main__':
