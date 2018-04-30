@@ -20,6 +20,10 @@ flags.DEFINE_string(
     help="Model to use. Supports ['linear', 'cnn']"
 )
 flags.DEFINE_string(
+    name='loss', default='rmse',
+    help="Loss metric to use. Supports ['rmse', 'r2']"
+)
+flags.DEFINE_string(
     name='cross_validation', default='leave-one-out',
     help="Cross validation technique to perform. "
          "Supports ['leave-one-out', 'forward']"
