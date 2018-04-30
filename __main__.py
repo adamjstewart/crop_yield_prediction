@@ -1,8 +1,10 @@
 #!/usr/bin/env python
-#
-# Deep learning model for crop yield prediction.
-#
-# Written by Adam J. Stewart, 2018.
+
+"""
+Deep learning model for crop yield prediction.
+
+Written by Adam J. Stewart, 2018.
+"""
 
 from model.classifier import get_classifier
 from utils.data_tools import preprocess_labels, sample_subset
