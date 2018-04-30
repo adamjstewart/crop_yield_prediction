@@ -38,6 +38,10 @@ flags.DEFINE_string(
     name='output', default='results/predictions.csv',
     help='Output file to save results in'
 )
+flags.DEFINE_boolean(
+    name='verbose', default=True,
+    help='Print messages explaining what is happening'
+)
 
 
 def main(args):
@@ -49,13 +53,13 @@ def main(args):
         args (list): command-line arguments
     """
     # Read in the dataset
-    dataset = read_csv(FLAGS.dataset)
+    dataset = read_csv(FLAGS.dataset, FLAGS.verbose)
 
     # Filter down to the 12 core states we care about
     dataset = filter_core_states(dataset)
 
     # Write the resulting dataset
-    write_csv(dataset, FLAGS.output)
+    write_csv(dataset, FLAGS.output, FLAGS.verbose)
 
 
 if __name__ == '__main__':
