@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Deep learning model for corn yield prediction.
+# Deep learning model for crop yield prediction.
 #
 # Written by Adam J. Stewart, 2018.
 
