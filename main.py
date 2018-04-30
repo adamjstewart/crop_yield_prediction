@@ -6,7 +6,7 @@
 
 from model.classifier import get_classifier
 from utils.data_tools import preprocess_labels, sample_subset
-from utils.io_tools import read_geotiff, write_geotiff
+from utils.io_tools import read_csv
 
 import tensorflow as tf
 
@@ -16,19 +16,30 @@ import tensorflow as tf
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string(
+    name='model', default='linear',
+    help="Model to use. Supports ['linear', 'cnn']"
+)
+flags.DEFINE_string(
     name='cross_validation', default='leave-one-out',
     help="Cross validation technique to perform. "
          "Supports ['leave-one-out', 'forward']"
+)
+flags.DEFINE_string(
+    name='dataset', default='data/Corn_model_data.csv',
+    help='Dataset for yield prediction'
 )
 
 
 def main(args):
     """High-level pipeline.
 
+    Trains the model and performs cross-validation.
+
     Parameters:
         args (list): command-line arguments
     """
-    pass
+    # Read in the dataset
+    dataset = read_csv(FLAGS.dataset)
 
 
 if __name__ == '__main__':
