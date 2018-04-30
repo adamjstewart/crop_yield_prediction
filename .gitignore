@@ -1,8 +1,9 @@
 # Python files
 __pycache__/
 
-# Data
+# Data files
 data/
+results/
 
-# Papers
-*.pdf
+# Other
+papers/
