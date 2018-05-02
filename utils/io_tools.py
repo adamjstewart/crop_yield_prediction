@@ -5,7 +5,7 @@ import pathlib
 
 
 def read_csv(filename, verbose=False):
-    """Reads a CSV dataset.
+    """Reads a CSV file containing the dataset.
 
     Parameters:
         filename (str): the filename of the dataset
@@ -20,11 +20,11 @@ def read_csv(filename, verbose=False):
     return pd.read_csv(filename)
 
 
-def write_csv(dataset, filename, verbose=False):
-    """Writes a dataset to CSV.
+def write_csv(data, filename, verbose=False):
+    """Writes data to a CSV file.
 
     Parameters:
-        dataset (pandas.DataFrame): the dataset to write
+        data (pandas.DataFrame): the data to write
         filename (str): the filename to write to
         verbose (bool): whether or not to print messages
     """
@@ -32,8 +32,9 @@ def write_csv(dataset, filename, verbose=False):
         print('Writing {}...'.format(filename))
 
     # Create directory if it does not already exist
-    directory = pathlib.Path(filename).parent
+    filename = pathlib.Path(filename)
+    directory = filename.parent
     directory.mkdir(parents=True, exist_ok=True)
 
     # Write the CSV file
-    dataset.to_csv(filename)
+    data.to_csv(filename)

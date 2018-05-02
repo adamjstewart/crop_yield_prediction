@@ -14,7 +14,7 @@ import tensorflow as tf
 
 
 # Define command-line flags.
-# Run `python main.py --help` for more details.
+# Run `python crop_yield_prediction --help` for more details.
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string(
@@ -31,11 +31,11 @@ flags.DEFINE_string(
          "Supports ['leave-one-out', 'forward']"
 )
 flags.DEFINE_string(
-    name='dataset', default='data/Corn_model_data.csv',
-    help='Dataset for yield prediction'
+    name='input_file', default='data/Corn_model_data.csv',
+    help='Input dataset for yield prediction'
 )
 flags.DEFINE_string(
-    name='output', default='results/predictions.csv',
+    name='output_file', default='results/predictions.csv',
     help='Output file to save results in'
 )
 flags.DEFINE_boolean(
@@ -53,13 +53,13 @@ def main(args):
         args (list): command-line arguments
     """
     # Read in the dataset
-    dataset = read_csv(FLAGS.dataset, FLAGS.verbose)
+    data = read_csv(FLAGS.input_file, FLAGS.verbose)
 
     # Filter down to the 12 core states we care about
-    dataset = filter_core_states(dataset)
+    data = filter_core_states(data)
 
     # Write the resulting dataset
-    write_csv(dataset, FLAGS.output, FLAGS.verbose)
+    # write_csv(dataset, FLAGS.output_file, FLAGS.verbose)
 
 
 if __name__ == '__main__':
