@@ -55,8 +55,9 @@ def main(args):
     # Read in the dataset
     data = read_csv(FLAGS.input_file, FLAGS.verbose)
 
-    # Filter down to the 12 core states we care about
-    data = filter_core_states(data)
+    # Filter data
+    data = filter_evi(data)
+    data = filter_area(data)
 
     # Write the resulting dataset
     # write_csv(dataset, FLAGS.output_file, FLAGS.verbose)
