@@ -7,7 +7,7 @@ Written by Adam J. Stewart, 2018.
 """
 
 from model.classifier import get_classifier
-from utils.data_tools import filter_core_states
+from utils.data_tools import filter_evi, filter_area
 from utils.io_tools import read_csv, write_csv
 
 import tensorflow as tf
