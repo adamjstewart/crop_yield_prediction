@@ -1,5 +1,6 @@
 """Functions for initializing the regressor."""
 
+import tempfile
 import tensorflow as tf
 
 
@@ -13,11 +14,12 @@ def get_regressor(model):
         tf.estimator.Estimator: the regressor
     """
     feature_columns = get_feature_columns()
+    model_dir = tempfile.mkdtemp()
 
     if model == 'linear':
-        return tf.estimator.LinearRegressor(feature_columns)
+        return tf.estimator.LinearRegressor(feature_columns, model_dir)
     elif model == 'dnn':
-        return tf.estimator.DNNRegressor([64, 32], feature_columns)
+        return tf.estimator.DNNRegressor([64, 32], feature_columns, model_dir)
     else:
         msg = "model only supports 'linear' and 'dnn'"
         raise ValueError(msg)
