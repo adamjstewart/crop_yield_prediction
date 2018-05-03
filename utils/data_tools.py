@@ -15,7 +15,7 @@ def filter_evi(data):
     states = states.unique()
 
     # Filter data down to these states
-    data = data.loc[data['State'].isin(states)]
+    data = data[data['State'].isin(states)]
 
     return data
 
@@ -30,3 +30,46 @@ def filter_area(data):
         pandas.DataFrame: the data for counties with growing area
     """
     return data[data['area'].notna()]
+
+
+def get_years(data):
+    """Returns a list of years in the dataset in ascending order.
+
+    Parameters:
+        data (pandas.DataFrame): the entire dataset
+
+    Returns:
+        np.ndarray: the years present in the dataset
+    """
+    years = data['year'].unique()
+
+    # Reverse order
+    years = years[::-1]
+
+    return years
+
+
+def split_dataset(data, year, cross_validation):
+    """Splits the dataset into training data and testing data.
+
+    Parameters:
+        data (pandas.DataFrame): the entire dataset
+        year (int): the current year we are interested in
+        cross_validation (str): the cross validation technique to perform.
+            Supports ['leave-one-out', 'forward'].
+
+    Returns:
+        pandas.DataFrame: the training data
+        pandas.DataFrame: the testing data
+    """
+    if cross_validation == 'leave-one-out':
+        # Train on every year except the test year
+        train_data = data[data['year'] != year]
+    elif cross_validation == 'forward':
+        # Train on every year before the test year
+        train_data = data[data['year'] < year]
+
+    # Test on the current year
+    test_data = data[data['year'] == year]
+
+    return train_data, test_data

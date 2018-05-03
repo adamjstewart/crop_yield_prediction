@@ -7,7 +7,7 @@ Written by Adam J. Stewart, 2018.
 """
 
 from model.classifier import get_classifier
-from utils.data_tools import filter_evi, filter_area
+from utils.data_tools import filter_evi, filter_area, get_years, split_dataset
 from utils.io_tools import read_csv, write_csv
 
 import tensorflow as tf
@@ -59,8 +59,13 @@ def main(args):
     data = filter_evi(data)
     data = filter_area(data)
 
+    # Perform cross validation
+    for year in get_years(data):
+        train_data, test_data = split_dataset(
+            data, year, FLAGS.cross_validation)
+
     # Write the resulting dataset
-    # write_csv(dataset, FLAGS.output_file, FLAGS.verbose)
+    # write_csv(data, FLAGS.output_file, FLAGS.verbose)
 
 
 if __name__ == '__main__':
