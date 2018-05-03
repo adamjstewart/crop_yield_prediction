@@ -68,6 +68,9 @@ def split_dataset(data, year, cross_validation):
     elif cross_validation == 'forward':
         # Train on every year before the test year
         train_data = data[data['year'] < year]
+    else:
+        msg = "cross_validation only supports 'leave-one-out' and 'forward'"
+        raise ValueError(msg)
 
     # Test on the current year
     test_data = data[data['year'] == year]

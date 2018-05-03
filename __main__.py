@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Deep learning model for crop yield prediction.
@@ -6,7 +6,7 @@ Deep learning model for crop yield prediction.
 Written by Adam J. Stewart, 2018.
 """
 
-from model.classifier import get_classifier
+from model.regressor import get_regressor
 from utils.data_tools import filter_evi, filter_area, get_years, split_dataset
 from utils.io_tools import read_csv, write_csv
 
@@ -19,7 +19,7 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string(
     name='model', default='linear',
-    help="Model to use. Supports ['linear', 'cnn']"
+    help="Model to use. Supports ['linear', 'dnn']"
 )
 flags.DEFINE_string(
     name='loss', default='rmse',
@@ -59,10 +59,18 @@ def main(args):
     data = filter_evi(data)
     data = filter_area(data)
 
-    # Perform cross validation
+    # For each year...
     for year in get_years(data):
+        # Split the dataset into training and testing data
         train_data, test_data = split_dataset(
             data, year, FLAGS.cross_validation)
+
+        # Initialize a new regression model
+        model = get_regressor(FLAGS.model)
+
+        # Train the model
+
+        # Test its performance
 
     # Write the resulting dataset
     # write_csv(data, FLAGS.output_file, FLAGS.verbose)
