@@ -1,5 +1,7 @@
 """Data tools for preprocessing the dataset."""
 
+import pandas as pd
+
 
 def filter_evi(data):
     """Filters dataset by removing states without any EVI data.
@@ -100,3 +102,32 @@ def split_dataset(data, year, cross_validation):
     test_data = data[data['year'] == year]
 
     return train_data, test_data
+
+
+def generator_to_series(predictions, index):
+    """Converts a generator of dicts of arrays to a Series.
+
+    Parameters:
+        predictions (generator): the predictions from the regressor
+        index (array): the index of the data
+
+    Returns:
+        pandas.Series: the predicted series data
+    """
+    data = [float(pred['predictions']) for pred in predictions]
+
+    return pd.Series(data, index)
+
+
+def save_predictions(data, predictions, year):
+    """Saves predicted values to the dataset.
+
+    Parameters:
+        data (pandas.DataFrame): the entire dataset
+        predictions (pandas.Series): the predicted yields
+        year (int): the year we are predicting
+    """
+    rows = data['year'] == year
+
+    # Store the predictions in the DataFrame
+    data.loc[rows, 'predicted yield'] = predictions

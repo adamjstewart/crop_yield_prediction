@@ -6,9 +6,10 @@ Deep learning model for crop yield prediction.
 Written by Adam J. Stewart, 2018.
 """
 
-from model.regressor import get_regressor, train_input_fn, eval_input_fn
-from utils.data_tools import drop_cols, drop_nans, get_years, split_dataset
-from utils.io_tools import read_csv, write_csv
+from model import metrics
+from model.regressor import *
+from utils.data_tools import *
+from utils.io_tools import *
 
 import tensorflow as tf
 
@@ -43,7 +44,7 @@ flags.DEFINE_integer(
     help='Number of elements of the dataset to sample from'
 )
 flags.DEFINE_integer(
-    name='num_epochs', default=10,
+    name='num_epochs', default=1,
     help='Number of passes through the entire dataset'
 )
 flags.DEFINE_integer(
@@ -65,42 +66,70 @@ def main(args):
         args (list): command-line arguments
     """
     # Read in the dataset
-    data = read_csv(FLAGS.input_file, FLAGS.verbose)
+    input_data = read_csv(FLAGS.input_file, FLAGS.verbose)
 
     # Filter data
-    drop_cols(data)
-    drop_nans(data)
+    drop_cols(input_data)
+    drop_nans(input_data)
+
+    output_data = input_data.copy()
 
     # For each year...
-    for year in get_years(data):
+    for year in get_years(input_data):
         if FLAGS.verbose:
-            print('\nYear: {}\n'.format(year))
+            print('\nYear:', year)
 
         # Split the dataset into training and testing data
         train_data, test_data = split_dataset(
-            data, year, FLAGS.cross_validation)
+            input_data, year, FLAGS.cross_validation)
 
         # Initialize a new regression model
         model = get_regressor(FLAGS.model)
 
         # Train the model
         if FLAGS.verbose:
-            print('Training...')
+            print('\nTraining...')
 
         model.train(lambda: train_input_fn(
             train_data, FLAGS.buffer_size, FLAGS.num_epochs, FLAGS.batch_size))
 
-        # Evaluate its performance
+        # Test the model
         if FLAGS.verbose:
-            print('Evaluating...')
+            print('Testing...\n')
 
-        eval_result = model.evaluate(lambda: eval_input_fn(test_data))
+        predictions = model.predict(lambda: test_input_fn(test_data))
+
+        # Evaluate the performance
+        labels = test_data['yield']
+        predictions = generator_to_series(predictions, labels.index)
+
+        rmse = metrics.rmse(labels, predictions)
+        r2 = metrics.r2(labels, predictions)
+        r2_classic = metrics.r2_classic(labels, predictions)
 
         if FLAGS.verbose:
-            print(eval_result)
+            print('RMSE:', rmse)
+            print('R2:', r2)
+            print('R2 (classic):', r2_classic)
+
+        save_predictions(output_data, predictions, year)
+
+    # Calculate overall performance
+    labels = input_data['yield']
+    predictions = output_data['predicted yield']
+
+    rmse = metrics.rmse(labels, predictions)
+    r2 = metrics.r2(labels, predictions)
+    r2_classic = metrics.r2_classic(labels, predictions)
+
+    if FLAGS.verbose:
+        print('\nOverall Performance\n')
+        print('\nRMSE:', rmse)
+        print('R2:', r2)
+        print('R2 (classic):', r2_classic)
 
     # Write the resulting dataset
-    # write_csv(data, FLAGS.output_file, FLAGS.verbose)
+    write_csv(output_data, FLAGS.output_file, FLAGS.verbose)
 
 
 if __name__ == '__main__':

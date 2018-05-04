@@ -79,13 +79,13 @@ def train_input_fn(data, buffer_size, num_epochs, batch_size):
     return dataset
 
 
-def eval_input_fn(data):
-    """Provides input data for evaluating the model.
+def test_input_fn(data):
+    """Provides input data for the testing phase.
 
     Parameters:
         data (pandas.DataFrame): the entire dataset
 
     Returns:
-        tf.data.Dataset: the mini-batch to train on
+        tf.data.Dataset: the mini-batch to test on
     """
     return train_input_fn(data, False, 1, 1)
