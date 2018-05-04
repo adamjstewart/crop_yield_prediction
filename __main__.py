@@ -7,7 +7,7 @@ Written by Adam J. Stewart, 2018.
 """
 
 from model.regressor import get_regressor, train_input_fn
-from utils.data_tools import filter_evi, filter_area, get_years, split_dataset
+from utils.data_tools import drop_cols, drop_nans, get_years, split_dataset
 from utils.io_tools import read_csv, write_csv
 
 import tensorflow as tf
@@ -39,11 +39,11 @@ flags.DEFINE_string(
     help='Output file to save results in'
 )
 flags.DEFINE_integer(
-    name='buffer_size', default=10000,
+    name='buffer_size', default=100,
     help='Number of elements of the dataset to sample from'
 )
 flags.DEFINE_integer(
-    name='num_epochs', default=100,
+    name='num_epochs', default=10,
     help='Number of passes through the entire dataset'
 )
 flags.DEFINE_integer(
@@ -68,13 +68,13 @@ def main(args):
     data = read_csv(FLAGS.input_file, FLAGS.verbose)
 
     # Filter data
-    data = filter_evi(data)
-    data = filter_area(data)
+    drop_cols(data)
+    drop_nans(data)
 
     # For each year...
     for year in get_years(data):
         if FLAGS.verbose:
-            print('Year:', year)
+            print('\nYear: {}\n'.format(year))
 
         # Split the dataset into training and testing data
         train_data, test_data = split_dataset(

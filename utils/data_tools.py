@@ -32,6 +32,30 @@ def filter_area(data):
     return data[data['area'].notna()]
 
 
+def drop_cols(data):
+    """Drops columns we don't care about from the dataset.
+
+    Parameters:
+        data (pandas.DataFrame): the entire dataset
+    """
+    labels = [
+        'yield_irr', 'yield_noirr',
+        'area_irr', 'area_noirr',
+        'land_area',
+    ]
+
+    data.drop(columns=labels, inplace=True)
+
+
+def drop_nans(data):
+    """Drops data points containing NaN values.
+
+    Parameters:
+        data (pandas.DataFrame): the entire dataset
+    """
+    data.dropna(inplace=True)
+
+
 def get_years(data):
     """Returns a list of years in the dataset in ascending order.
 

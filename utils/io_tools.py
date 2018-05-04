@@ -15,7 +15,7 @@ def read_csv(filename, verbose=False):
         pandas.DataFrame: the dataset
     """
     if verbose:
-        print('Reading {}...'.format(filename))
+        print('\nReading {}...'.format(filename))
 
     return pd.read_csv(filename)
 
@@ -29,7 +29,7 @@ def write_csv(data, filename, verbose=False):
         verbose (bool): whether or not to print messages
     """
     if verbose:
-        print('Writing {}...'.format(filename))
+        print('\nWriting {}...'.format(filename))
 
     # Create directory if it does not already exist
     filename = pathlib.Path(filename)
