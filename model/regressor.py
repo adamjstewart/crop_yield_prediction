@@ -46,3 +46,33 @@ def get_feature_columns():
     ]
 
     return map(tf.feature_column.numeric_column, features)
+
+
+def train_input_fn(data, buffer_size, num_epochs, batch_size):
+    """Provides input data for training as mini-batches.
+
+    Parameters:
+        data (pandas.DataFrame): the entire dataset
+        buffer_size (int): the number of elements of the dataset to sample from
+        num_epochs (int): the number of passes through the entire dataset
+        batch_size (int): the number of samples in each mini-batch
+
+    Returns:
+        tf.data.Dataset: the mini-batch to train on
+    """
+    # Separate the ground truth labels from the features
+    features, labels = data, data.pop('yield')
+
+    # Convert the data to a TensorFlow Dataset
+    dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
+
+    # Sample from a random subset of the data
+    dataset = dataset.shuffle(buffer_size)
+
+    # Repeat training on this subset
+    dataset = dataset.repeat(num_epochs)
+
+    # Sample a single mini-batch
+    dataset = dataset.batch(batch_size)
+
+    return dataset

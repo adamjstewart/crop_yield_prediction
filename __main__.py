@@ -6,7 +6,7 @@ Deep learning model for crop yield prediction.
 Written by Adam J. Stewart, 2018.
 """
 
-from model.regressor import get_regressor
+from model.regressor import get_regressor, train_input_fn
 from utils.data_tools import filter_evi, filter_area, get_years, split_dataset
 from utils.io_tools import read_csv, write_csv
 
@@ -38,6 +38,18 @@ flags.DEFINE_string(
     name='output_file', default='results/predictions.csv',
     help='Output file to save results in'
 )
+flags.DEFINE_integer(
+    name='buffer_size', default=10000,
+    help='Number of elements of the dataset to sample from'
+)
+flags.DEFINE_integer(
+    name='num_epochs', default=100,
+    help='Number of passes through the entire dataset'
+)
+flags.DEFINE_integer(
+    name='batch_size', default=16,
+    help='Number of samples in each mini-batch'
+)
 flags.DEFINE_boolean(
     name='verbose', default=True,
     help='Print messages explaining what is happening'
@@ -61,6 +73,9 @@ def main(args):
 
     # For each year...
     for year in get_years(data):
+        if FLAGS.verbose:
+            print('Year:', year)
+
         # Split the dataset into training and testing data
         train_data, test_data = split_dataset(
             data, year, FLAGS.cross_validation)
@@ -69,8 +84,15 @@ def main(args):
         model = get_regressor(FLAGS.model)
 
         # Train the model
+        if FLAGS.verbose:
+            print('Training...')
 
-        # Test its performance
+        model.train(lambda: train_input_fn(
+            train_data, FLAGS.buffer_size, FLAGS.num_epochs, FLAGS.batch_size))
+
+        # Evaluate its performance
+        if FLAGS.verbose:
+            print('Evaluating...')
 
     # Write the resulting dataset
     # write_csv(data, FLAGS.output_file, FLAGS.verbose)
