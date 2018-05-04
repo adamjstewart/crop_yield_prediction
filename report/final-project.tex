@@ -1,0 +1,72 @@
+\documentclass[letterpaper]{article}
+
+\begin{document}
+
+\title{CS\,466 Spring 2018 Final Project}
+\author{Adam J. Stewart (adamjs5)}
+
+\maketitle
+
+\section{Abstract}
+
+\section{Introduction}
+
+\section{Data}
+
+A large dataset of environmental measurements as well as ground truth labels was used to train the machine learning model. Due to different sampling techniques, each measurement came at a different spatial and temporal resolution. Although we have access to daily climate data, our satellite data was limited to the frequency with which the satellite passes over the region of interest. Our satellite data came at a fairly high spatial resolution, but our yield data was restricted to county-level resolution. In order to resolve this problem, all of the data was aggregated to the lowest common denominator: monthly intervals at county-level resolution.
+
+Unpredictable cloud coverage resulted in many missing measurements. Since the model cannot handle NaNs in the data, all data points containing NaNs were removed from the dataset before training. In particular, we only have access to satellite data for the 12 largest corn-producing states, so only these states are included in the training and testing datasets.
+
+\subsection{Climate Variables}
+
+In terms of climate data, we used temperature, vapor-pressure deficit (VPD), and precipitation to predict corn yields. All of the raw climate data was collected at a daily temporal resolution, but aggregated to monthly data. For each month, our model was trained on the following climate measurements:
+
+\begin{enumerate}
+    \item Temperature
+    \begin{itemize}
+        \item Maximum temperature
+        \item Minimum temperature
+        \item Average temperature
+    \end{itemize}
+    \item Vapor-pressure deficit (VPD)
+    \begin{itemize}
+        \item Maximum VPD
+        \item Minimum VPD
+        \item Average VPD
+    \end{itemize}
+    \item Precipitation
+\end{enumerate}
+
+\subsection{Satellite Variables}
+
+Our satellite data came in two flavors: enhanced vegetation index (EVI) and land surface temperature (LST). Enhanced vegetation index can be thought of as a measure of the ``greenness'' of the satellite image, and serves as an indirect proxy for biomass growth. Maximum land surface temperature measured by satellites does not always agree with ground measurements, but is often at a higher spatial resolution, making it useful for training our algorithm.
+
+\subsection{Soil Variables}
+
+Environmental factors such as soil quality are also important in determining crop yield. In order to train our model, we used soil organic matter (SOM) and available water capacity (AWC) measurements at county-level resolution.
+
+\subsection{Ground truth labels}
+
+Our ground truth labels came from yields published after the harvest season ended. The original yield measurements are in bushels per acre (bsh/ac) but were converted to tonnes per hectare (t/ha) for comparison with previous results.
+
+\section{Methods}
+
+\subsection{Machine Learning Model}
+
+\subsection{Cross Validation}
+
+\subsection{Metrics}
+
+\section{Results}
+
+\section{Future Work}
+
+lat/long
+
+non-aggregated data
+
+NaNs
+
+\section{References}
+
+\end{document}

@@ -3,6 +3,14 @@
     [
         {
             "path": ".",
+            "file_exclude_patterns": [
+                "*.aux",
+                "*.fdb_latexmk",
+                "*.fls",
+                "*.log",
+                "*.pdf",
+                "*.synctex.gz",
+            ],
             "folder_exclude_patterns": [
                 "__pycache__",
                 "data",
