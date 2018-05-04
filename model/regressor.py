@@ -45,11 +45,11 @@ def get_feature_columns():
         'om', 'awc',
     ]
 
-    return map(tf.feature_column.numeric_column, features)
+    return list(map(tf.feature_column.numeric_column, features))
 
 
 def train_input_fn(data, buffer_size, num_epochs, batch_size):
-    """Provides input data for training as mini-batches.
+    """Provides input data for the training phase.
 
     Parameters:
         data (pandas.DataFrame): the entire dataset
@@ -67,7 +67,8 @@ def train_input_fn(data, buffer_size, num_epochs, batch_size):
     dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
 
     # Sample from a random subset of the data
-    dataset = dataset.shuffle(buffer_size)
+    if buffer_size:
+        dataset = dataset.shuffle(buffer_size)
 
     # Repeat training on this subset
     dataset = dataset.repeat(num_epochs)
@@ -76,3 +77,15 @@ def train_input_fn(data, buffer_size, num_epochs, batch_size):
     dataset = dataset.batch(batch_size)
 
     return dataset
+
+
+def eval_input_fn(data):
+    """Provides input data for evaluating the model.
+
+    Parameters:
+        data (pandas.DataFrame): the entire dataset
+
+    Returns:
+        tf.data.Dataset: the mini-batch to train on
+    """
+    return train_input_fn(data, False, 1, 1)

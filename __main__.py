@@ -6,7 +6,7 @@ Deep learning model for crop yield prediction.
 Written by Adam J. Stewart, 2018.
 """
 
-from model.regressor import get_regressor, train_input_fn
+from model.regressor import get_regressor, train_input_fn, eval_input_fn
 from utils.data_tools import drop_cols, drop_nans, get_years, split_dataset
 from utils.io_tools import read_csv, write_csv
 
@@ -93,6 +93,11 @@ def main(args):
         # Evaluate its performance
         if FLAGS.verbose:
             print('Evaluating...')
+
+        eval_result = model.evaluate(lambda: eval_input_fn(test_data))
+
+        if FLAGS.verbose:
+            print(eval_result)
 
     # Write the resulting dataset
     # write_csv(data, FLAGS.output_file, FLAGS.verbose)
