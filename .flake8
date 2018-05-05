@@ -1,0 +1,5 @@
+[flake8]
+# Allow star imports
+ignore = F403,F405
+# Ignore previous statistical model
+exclude = func_crop_model.py 
