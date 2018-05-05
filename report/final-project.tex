@@ -1,5 +1,7 @@
 \documentclass[letterpaper]{article}
 
+\usepackage{amsmath}
+
 \begin{document}
 
 \title{CS\,466 Spring 2018 Final Project}
@@ -13,13 +15,13 @@
 
 \section{Data}
 
-A large dataset of environmental measurements as well as ground truth labels was used to train the machine learning model. Due to different sampling techniques, each measurement came at a different spatial and temporal resolution. Although we have access to daily climate data, our satellite data was limited to the frequency with which the satellite passes over the region of interest. Our satellite data came at a fairly high spatial resolution, but our yield data was restricted to county-level resolution. In order to resolve this problem, all of the data was aggregated to the lowest common denominator: monthly intervals at county-level resolution.
+A large dataset of environmental measurements as well as ground truth labels was used to train the machine learning model. Due to different sampling techniques, each measurement came at a different spatial and temporal resolution. Although I have access to daily climate data, the satellite data was limited to the frequency with which the satellite passes over the region of interest. The satellite data came at a fairly high spatial resolution, but the yield data was restricted to county-level resolution. In order to resolve this problem, all of the data was aggregated to the lowest common denominator: monthly intervals at county-level resolution.
 
-Unpredictable cloud coverage resulted in many missing measurements. Since the model cannot handle NaNs in the data, all data points containing NaNs were removed from the dataset before training. In particular, we only have access to satellite data for the 12 largest corn-producing states, so only these states are included in the training and testing datasets.
+Unpredictable cloud coverage resulted in many missing measurements. Since the model cannot handle NaNs in the data, all data points containing NaNs were removed from the dataset before training. In particular, I only have access to satellite data for the 12 largest corn-producing states, so only these states are included in the training and testing datasets.
 
 \subsection{Climate Variables}
 
-In terms of climate data, we used temperature, vapor-pressure deficit (VPD), and precipitation to predict corn yields. All of the raw climate data was collected at a daily temporal resolution, but aggregated to monthly data. For each month, our model was trained on the following climate measurements:
+In terms of climate data, I used temperature, vapor-pressure deficit (VPD), and precipitation to predict corn yields. All of the raw climate data was collected at a daily temporal resolution, but aggregated to monthly data. For each month, the model was trained on the following climate measurements:
 
 \begin{enumerate}
     \item Temperature
@@ -39,29 +41,58 @@ In terms of climate data, we used temperature, vapor-pressure deficit (VPD), and
 
 \subsection{Satellite Variables}
 
-Our satellite data came in two flavors: enhanced vegetation index (EVI) and land surface temperature (LST). Enhanced vegetation index can be thought of as a measure of the ``greenness'' of the satellite image, and serves as an indirect proxy for biomass growth. Maximum land surface temperature measured by satellites does not always agree with ground measurements, but is often at a higher spatial resolution, making it useful for training our algorithm.
+My satellite data came in two flavors: enhanced vegetation index (EVI) and land surface temperature (LST). Enhanced vegetation index can be thought of as a measure of the ``greenness'' of the satellite image, and serves as an indirect proxy for biomass growth. Maximum land surface temperature measured by satellites does not always agree with ground measurements, but is often at a higher spatial resolution, making it useful for training the algorithm.
 
 \subsection{Soil Variables}
 
-Environmental factors such as soil quality are also important in determining crop yield. In order to train our model, we used soil organic matter (SOM) and available water capacity (AWC) measurements at county-level resolution.
+Environmental factors such as soil quality are also important in determining crop yield. In order to train the model, I used soil organic matter (SOM) and available water capacity (AWC) measurements at county-level resolution.
 
 \subsection{Ground truth labels}
 
-Our ground truth labels came from yields published after the harvest season ended. The original yield measurements are in bushels per acre (bsh/ac) but were converted to tonnes per hectare (t/ha) for comparison with previous results.
+My ground truth labels came from yields published after the harvest season ended. The original yield measurements are in bushels per acre (bsh/ac) but were converted to tonnes per hectare (t/ha) for comparison with previous results.
 
 \section{Methods}
 
 \subsection{Machine Learning Model}
 
+I experimented with two common machine learning paradigms: linear regression (least squares) and deep neural networks (DNNs). Although linear regression techniques have been used in the past for crop yield prediction, I wanted to reimplement this to provide a common baseline. Linear regression and DNNs were implemented using TensorFlow.
+
+\subsection{Training}
+
+To train the model, I tried both stochastic gradient descent (SGD) with a batch size of 1 and mini-batch gradient descent with a batch size ranging from 16 to 32. I shuffled the dataset before selecting a random subset of the training data. I then repeated the same inputs for 10 to 50 epochs. Since neural networks aren't convex, SGD and mini-batch are useful techniques for finding global optimums.
+
 \subsection{Cross Validation}
+
+In real world usage, the model will be trained on data from all previous years and used to predict the current year. To evaluate the performance of the model, I used two cross validation techniques: leave-one-out and forward. Leave-one-out cross validation allows the model to train on the entire dataset minus a particular year, then test the performance on this particular year. Forward cross validation works more like the model will be used on real world data, where the model is trained on data from all years prior to the current year and tested on the current year.
 
 \subsection{Metrics}
 
+Given a prediction for yields on the training dataset, I needed a way to evaluate the accuracy of the model. I used three different performance metrics: root-mean-squared error (RMSE), correlation coefficient ($r$), and coefficient of determination ($R^2$). These values are defined as follows. Let $y_i$ be a ground truth label, and let $\hat{y}_i$ be a predicted value for the same data point $x_i$. If there are $n$ data points in the testing dataset, then:
+
+\begin{align*}
+\operatorname{RMSE} = \sqrt{\frac{\sum_{i=1}^n (\hat y_i - y_i)^2}{n}}
+\end{align*}
+
+\begin{align*}
+\bar{x} &= \frac{1}{n}\sum_{i=1}^n x_i \\
+\bar{y} &= \frac{1}{n}\sum_{i=1}^n y_i \\
+r &= \frac{\sum ^n _{i=1}(x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum ^n _{i=1}(x_i - \bar{x})^2} \sqrt{\sum ^n _{i=1}(y_i - \bar{y})^2}}
+\end{align*}
+
+\begin{align*}
+\bar{y} &= \frac{1}{n}\sum_{i=1}^n y_i \\
+SS_\text{tot} &= \sum_i (y_i-\bar{y})^2 \\
+SS_\text{res} &= \sum_i (y_i - \hat y_i)^2 \\
+R^2 &= 1 - \frac{SS_{\rm res}}{SS_{\rm tot}}
+\end{align*}
+
 \section{Results}
 
-\section{Future Work}
+\section{Discussion}
 
 lat/long
+
+convolutional
 
 non-aggregated data
 
