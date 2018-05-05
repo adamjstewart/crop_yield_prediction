@@ -104,13 +104,13 @@ def main(args):
         predictions = generator_to_series(predictions, labels.index)
 
         rmse = metrics.rmse(labels, predictions)
-        r2 = metrics.r2(labels, predictions)
-        r2_classic = metrics.r2_classic(labels, predictions)
+        r = metrics.r(labels, predictions)
+        R2 = metrics.R2(labels, predictions)
 
         if FLAGS.verbose:
             print('RMSE:', rmse)
-            print('R2:', r2)
-            print('R2 (classic):', r2_classic)
+            print('r:', r)
+            print('R^2:', R2)
 
         save_predictions(output_data, predictions, year)
 
@@ -119,14 +119,14 @@ def main(args):
     predictions = output_data['predicted yield']
 
     rmse = metrics.rmse(labels, predictions)
-    r2 = metrics.r2(labels, predictions)
-    r2_classic = metrics.r2_classic(labels, predictions)
+    r = metrics.r(labels, predictions)
+    R2 = metrics.R2(labels, predictions)
 
     if FLAGS.verbose:
         print('\nOverall Performance\n')
         print('RMSE:', rmse)
-        print('R2:', r2)
-        print('R2 (classic):', r2_classic)
+        print('r:', r)
+        print('R^2:', R2)
 
     # Write the resulting dataset
     write_csv(output_data, FLAGS.output_file, FLAGS.verbose)

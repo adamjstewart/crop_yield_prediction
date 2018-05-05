@@ -5,7 +5,7 @@ def rmse(labels, predictions):
     """Calculates the Root-Mean-Squared Error (RMSE) between
     labels and predictions.
 
-    https://en.wikipedia.org/wiki/Root-mean-square_deviation#Formula
+    https://en.wikipedia.org/wiki/Root-mean-square_deviation
 
     Parameters:
         labels (pandas.Series): the ground truth labels
@@ -22,30 +22,29 @@ def rmse(labels, predictions):
     return rmse
 
 
-def r2(labels, predictions):
-    """Calculates the squared correlation coefficient (r^2) between
+def r(labels, predictions):
+    """Calculates the Pearson correlation coefficient (r) between
     labels and predictions.
 
-    https://en.wikipedia.org/wiki/Coefficient_of_determination#As_squared_correlation_coefficient
+    https://en.wikipedia.org/wiki/Correlation_coefficient
 
     Parameters:
         labels (pandas.Series): the ground truth labels
         predictions (pandas.Series): the predicted labels
 
     Returns:
-        float: the squared correlation between labels and predictions
+        float: the correlation between labels and predictions
     """
     r = labels.corr(predictions)
-    r2 = r ** 2
 
-    return r2
+    return r
 
 
-def r2_classic(labels, predictions):
-    """Calculates the coefficient of determination (r^2) between
+def R2(labels, predictions):
+    """Calculates the coefficient of determination (R^2) between
     labels and predictions.
 
-    https://en.wikipedia.org/wiki/Coefficient_of_determination#Definitions
+    https://en.wikipedia.org/wiki/Coefficient_of_determination
 
     Parameters:
         labels (pandas.Series): the ground truth labels
