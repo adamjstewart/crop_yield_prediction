@@ -124,7 +124,7 @@ def main(args):
 
     if FLAGS.verbose:
         print('\nOverall Performance\n')
-        print('\nRMSE:', rmse)
+        print('RMSE:', rmse)
         print('R2:', r2)
         print('R2 (classic):', r2_classic)
 
