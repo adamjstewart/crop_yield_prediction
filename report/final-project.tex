@@ -1,6 +1,7 @@
 \documentclass[letterpaper]{article}
 
 \usepackage{amsmath}
+\usepackage{float}
 
 \begin{document}
 
@@ -13,19 +14,19 @@
 
 The United States is the largest producer of corn worldwide. Since corn makes up a large percentage of our agricultural trade, accurate forecasts of crop yields are important for predicting economic growth, signing trade deals, and modeling insurance risks. The U.S. Department of Agriculture (USDA) releases historical data on crop yields, but not until the growing season afterwards. In-season predictions of crop yields are crucial for timely information relevant to these economic concerns.
 
-Other researchers have attempted to predict crop yields in the past. The oldest models rely on modeling the process itself, trying to predict the growth based on knowledge of the crops themselves. Newer techniques include statistical models that ignore the underlying physiological behavior of plants and instead rely on training a model based on past data.
+Other researchers have attempted to predict crop yields in the past. The oldest models rely on modeling the growth process itself, trying to predict the yield based on knowledge of the crops themselves. Newer techniques include statistical models that ignore the underlying physiological behavior of plants and instead rely on training a model based on past data.
 
-Yan Li, Kaiyu Guan, and Bin Peng developed a statistical model for corn yield prediction. This model includes linear regression, polynomial regression, and the use of splines to predict crop yields \cite{li18}. Recent work done by Gro Intelligence, Inc.\ experiments with a machine learning approach to address the same task \cite{cai18}.
+Yan Li, Kaiyu Guan, and Bin Peng developed a statistical model for corn yield prediction. This model includes the use of least squares fitting on lines, order 2 polynomials, and splines to predict crop yields \cite{li18}. Recent work done by Gro Intelligence, Inc.\ experiments with a machine learning approach to address the same task \cite{cai18}. The purpose of this project was to compare various machine learning approaches to these statistical methods on the same dataset used by Li et al.
 
 \section{Data}
 
-A large dataset of environmental measurements as well as ground truth labels was used to train the machine learning model. Due to different sampling techniques, each measurement came at a different spatial and temporal resolution. Although I have access to daily climate data, the satellite data was limited to the frequency with which the satellite passes over the region of interest. The satellite data came at a fairly high spatial resolution, but the yield data was restricted to county-level resolution. In order to resolve this problem, all of the data was aggregated to the lowest common denominator: monthly intervals at county-level resolution.
+A large dataset of environmental measurements as well as ground truth labels was used to train the machine learning model. Due to different sampling techniques, each measurement came at a different spatial and temporal resolution. Although I have access to daily climate data, the satellite data was limited to the frequency with which the satellite passes over the region of interest. The satellite data came at a fairly high spatial resolution, but the yield data was restricted to county-level resolution. In order to resolve this problem, all of the data was aggregated to the lowest common denominator: monthly intervals at county-level resolution. This is the same approach used by Li et al.\ and Gro Intelligence, Inc \cite{li18,cai18}.
 
-Unpredictable cloud coverage resulted in many missing measurements. Since the model cannot handle NaNs in the data, all data points containing NaNs were removed from the dataset before training. In particular, I only have access to satellite data for the 12 largest corn-producing states, so only these states are included in the training and testing datasets.
+Unpredictable cloud coverage resulted in many missing measurements. Since the model cannot handle NaNs in the data, all data points containing NaNs were removed from the dataset before training and testing. In particular, I only have access to satellite data for the 12 largest corn-producing states, so only these states are included in the training and testing datasets.
 
 \subsection{Climate Variables}
 
-In terms of climate data, I used temperature, vapor-pressure deficit (VPD), and precipitation to predict corn yields. All of the raw climate data was collected at a daily temporal resolution, but aggregated to monthly data. For each month, the model was trained on the following climate measurements:
+In terms of climate data, I used temperature, vapor-pressure deficit (VPD), and precipitation to predict corn yields. All of the raw climate data was collected at a daily temporal resolution, but aggregated to monthly intervals. For each month, the model was trained on the following climate measurements:
 
 \begin{enumerate}
     \item Temperature
@@ -41,6 +42,9 @@ In terms of climate data, I used temperature, vapor-pressure deficit (VPD), and 
         \item Average VPD
     \end{itemize}
     \item Precipitation
+    \begin{itemize}
+        \item Total precipitation
+    \end{itemize}
 \end{enumerate}
 
 \subsection{Satellite Variables}
@@ -53,25 +57,25 @@ Environmental factors such as soil quality are also important in determining cro
 
 \subsection{Ground truth labels}
 
-My ground truth labels came from yields published after the harvest season ended. The original yield measurements are in bushels per acre (bsh/ac) but were converted to tonnes per hectare (t/ha) for comparison with previous results.
+My ground truth labels came from yields published by the USDA after the harvest season ended. The original yield measurements are in bushels per acre (bsh/ac) but were converted to tonnes per hectare (t/ha) for comparison with previous results.
 
 \section{Methods}
 
 \subsection{Machine Learning Model}
 
-I experimented with two common machine learning paradigms: linear regression (least squares) and deep neural networks (DNNs). Although linear regression techniques have been used in the past for crop yield prediction, I wanted to reimplement this to provide a common baseline. Linear regression and DNNs were implemented using TensorFlow \cite{tensorflow2015-whitepaper}.
+I experimented with two common machine learning paradigms: linear regression and deep neural networks (DNNs). Although linear regression techniques have been used in the past for crop yield prediction, I wanted to reimplement this to provide a common baseline for comparison. Linear regression and DNNs were implemented using TensorFlow's built-in \texttt{LinearRegressor} and \texttt{DNNRegressor} estimators. \cite{tensorflow2015-whitepaper}.
 
 \subsection{Training}
 
-To train the model, I tried both stochastic gradient descent (SGD) with a batch size of 1 and mini-batch gradient descent with a batch size ranging from 16 to 32. I shuffled the dataset before selecting a random subset of the training data. I then repeated the same inputs for 10 to 50 epochs. Since neural networks aren't convex, SGD and mini-batch are useful techniques for finding global optimums.
+To train the model, I tried both stochastic gradient descent (SGD) with a batch size of 1 and mini-batch gradient descent with a batch size ranging from 16 to 128. I shuffled the dataset before selecting a random subset of the training data. I then repeated the same inputs for 10 to 100 epochs. Since neural networks are a non-convex optimization problem, SGD and mini-batch are useful techniques for finding global optima.
 
 \subsection{Cross Validation}
 
-In real world usage, the model will be trained on data from all previous years and used to predict the current year. To evaluate the performance of the model, I used two cross validation techniques: leave-one-out and forward. Leave-one-out cross validation allows the model to train on the entire dataset minus a particular year, then test the performance on this particular year. Forward cross validation works more like the model will be used on real world data, where the model is trained on data from all years prior to the current year and tested on the current year.
+In real world usage, the model will be trained on data from all previous years and used to predict the current year. To evaluate the performance of the model, I used two cross validation techniques: leave-one-out and forward. Leave-one-out cross validation allows the model to train on the entire dataset minus a particular year, then tests the performance on this particular year. Forward cross validation works more like the model will be used on real world data, where the model is trained on data from all years prior to the current year and tested on the current year. These cross validation techniques were used to evaluate the performance of the model for each year, and the final results were averaged over all years.
 
 \subsection{Metrics}
 
-Given a prediction for yields on the training dataset, I needed a way to evaluate the accuracy of the model. I used three different performance metrics: root-mean-squared error (RMSE), correlation coefficient ($r$), and coefficient of determination ($R^2$). These values are defined as follows. Let $y_i$ be a ground truth label, and let $\hat{y}_i$ be a predicted value for the same data point $x_i$. If there are $n$ data points in the testing dataset, then:
+Given a prediction for yields on the testing dataset, I needed a way to evaluate the accuracy of the model. I used three different performance metrics: root-mean-squared error (RMSE), Pearson correlation coefficient ($r$), and coefficient of determination ($R^2$). These values are defined as follows. Let $y_i$ be a ground truth label, and let $\hat{y}_i$ be a predicted value for the same data point $x_i$. If there are $n$ data points in the testing dataset, then:
 
 \begin{align*}
 \operatorname{RMSE} = \sqrt{\frac{\sum_{i=1}^n (\hat y_i - y_i)^2}{n}}
@@ -90,19 +94,49 @@ SS_\text{res} &= \sum_i (y_i - \hat y_i)^2 \\
 R^2 &= 1 - \frac{SS_{\rm res}}{SS_{\rm tot}}
 \end{align*}
 
+These metrics were gathered on a yearly basis, as well as for all years combined.
+
 \section{Results}
 
 Preliminary results show disappointing performance from both the linear regression and DNN models. Unfortunately, I ran out of time to tune all of the hyperparameters, so it is possible that with more time, I can achieve better results.
 
-See the Discussion section for plans for future work to improve these results.
+The best results for the linear regressor were achieved using a shuffle buffer size of 100,000, 50 training epochs, and a batch size of 16.
+
+\begin{table}[h!]
+    \centering
+    \caption{Linear Regressor Prediction Accuracy}
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \textbf{RMSE (t/ha)} & $\mathbf{r}$ & $\mathbf{R^2}$ \\
+        \hline
+        1.840 & 0.619 & 0.380 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+The best results for the DNN regressor were achieved using a shuffle buffer size of 10,000, 20 training epochs, and a batch size of 1.
+
+\begin{table}[h!]
+    \centering
+    \caption{DNN Regressor Prediction Accuracy}
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \textbf{RMSE (t/ha)} & $\mathbf{r}$ & $\mathbf{R^2}$ \\
+        \hline
+        2.021 & 0.542 & 0.251 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+For comparison, Li et al.\ were able to achieve an RMSE of 1.027 (t/ha) and an $R^2$ of 0.823. See the Discussion section for plans for future work to improve these results.
 
 \section{Discussion}
 
-For the purposes of this project, I largely used the same dataset and techniques as (Yan Li's paper) for a fair comparison between statistical models and machine learning models. However, there are several modifications that can be made to the model and new sources of data that can be added to improve prediction accuracy.
+For the purposes of this project, I largely used the same dataset and techniques as Li et al.\ for a fair comparison between statistical models and machine learning models. However, there are several modifications that can be made to the model and new sources of data that can be added to improve prediction accuracy.
 
-Currently, each county is treated as an independent data point, with no regional correlation. There are a couple ways that this can be improved. Obviously, crop yields are dependent on latitude and longitude, so one promising idea would be to translate the Federal Information Processing Standard (FIPS) codes for each county to the lat/long coordinates of that county. Another idea would be to build a convolutional neural network (CNN) that takes into account neighboring counties. If several neighboring counties were predicted to achieve higher than average crop yields, it would make sense for the county of interest to also achieve high yields, even if the data for this county contains noise.
+Currently, each county is treated as an independent data point, with no regional correlation. There are a couple ways that this can be improved upon. Obviously, crop yields are dependent on latitude and longitude, so one promising idea would be to translate the Federal Information Processing Standard (FIPS) codes for each county to the lat/long coordinates of that county. Another idea would be to build a convolutional neural network (CNN) that takes into account neighboring counties. If several neighboring counties were predicted to achieve higher than average crop yields, it would make sense for the county of interest to also achieve high yields, even if the data for this county contains significant noise that would otherwise lead to an erroneous prediction.
 
-As mentioned in the Data section, each data source came at different spatial and temporal resolutions, and was aggregated to monthly county-level resolution. An interesting proposal would be to train off of the non-aggregated data. For example, if the first half of the month is incredibly dry, and the second half of the month was incredibly wet, one would expect very different yields than if the month was perfectly average, yet the total precipitation for the month would be the same. If it were possible to train off of every daily measurement at a higher resolution, it should be possible to capture more of the features that influence crop growth. One way to handle this would be to train several neural nets, one for climate variables, one for satellite variables, and one for soil variables. Then, these separate models could be combined using an ensemble method like bagging or boosting.
+As mentioned in the Data section, each data source came at different spatial and temporal resolutions, and was aggregated to monthly county-level resolution. An interesting proposal would be to train off of the non-aggregated data. For example, if the first half of the month was incredibly dry, and the second half of the month was incredibly wet, one would expect very different yields than if the month was perfectly average, yet the total precipitation for the month would be the same. If it were possible to train off of every daily measurement at a higher spatial resolution, it should be possible to capture more of the features that influence crop growth. One way to handle this would be to train several neural nets, one for climate variables, one for satellite variables, and one for soil variables. Then, these separate models could be combined using an ensemble method like bagging or boosting.
 
 Another major factor in the usefulness of the model is its robustness. As mentioned in the Data section, due to changing cloud cover and satellite trajectories, missing data is common in the dataset. Currently, the model cannot handle any NaN values, so these data points are removed from the dataset before training and testing. In order for the model to be used commercially, it needs to be made more robust in the face of missing data.
 
