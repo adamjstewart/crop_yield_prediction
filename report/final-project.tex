@@ -9,9 +9,9 @@
 
 \maketitle
 
-\section{Abstract}
-
 \section{Introduction}
+
+
 
 \section{Data}
 
@@ -45,7 +45,7 @@ My satellite data came in two flavors: enhanced vegetation index (EVI) and land 
 
 \subsection{Soil Variables}
 
-Environmental factors such as soil quality are also important in determining crop yield. In order to train the model, I used soil organic matter (SOM) and available water capacity (AWC) measurements at county-level resolution.
+Environmental factors such as soil quality are also important in determining crop yield. In order to train the model, I used soil organic matter (SOM) and available water capacity (AWC) measurements at county-level resolution. Soil variables are assumed to be static, so there is only a single measurement for each county.
 
 \subsection{Ground truth labels}
 
@@ -88,15 +88,21 @@ R^2 &= 1 - \frac{SS_{\rm res}}{SS_{\rm tot}}
 
 \section{Results}
 
+Preliminary results show disappointing performance from both the linear regression and DNN models. Unfortunately, I ran out of time to tune all of the hyperparameters, so it is possible that with more time, I can achieve better results.
+
+See the Discussion section for plans for future work to improve these results.
+
 \section{Discussion}
 
-lat/long
+For the purposes of this project, I largely used the same dataset and techniques as (Yan Li's paper) for a fair comparison between statistical models and machine learning models. However, there are several modifications that can be made to the model and new sources of data that can be added to improve prediction accuracy.
 
-convolutional
+Currently, each county is treated as an independent data point, with no regional correlation. There are a couple ways that this can be improved. Obviously, crop yields are dependent on latitude and longitude, so one promising idea would be to translate the Federal Information Processing Standard (FIPS) codes for each county to the lat/long coordinates of that county. Another idea would be to build a convolutional neural network (CNN) that takes into account neighboring counties. If several neighboring counties were predicted to achieve higher than average crop yields, it would make sense for the county of interest to also achieve high yields, even if the data for this county contains noise.
 
-non-aggregated data
+As mentioned in the Data section, each data source came at different spatial and temporal resolutions, and was aggregated to monthly county-level resolution. An interesting proposal would be to train off of the non-aggregated data. For example, if the first half of the month is incredibly dry, and the second half of the month was incredibly wet, one would expect very different yields than if the month was perfectly average, yet the total precipitation for the month would be the same. If it were possible to train off of every daily measurement at a higher resolution, it should be possible to capture more of the features that influence crop growth. One way to handle this would be to train several neural nets, one for climate variables, one for satellite variables, and one for soil variables. Then, these separate models could be combined using an ensemble method like bagging or boosting.
 
-NaNs
+Another major factor in the usefulness of the model is its robustness. As mentioned in the Data section, due to changing cloud cover and satellite trajectories, missing data is common in the dataset. Currently, the model cannot handle any NaN values, so these data points are removed from the dataset before training and testing. In order for the model to be used commercially, it needs to be made more robust in the face of missing data.
+
+This summer, I will be working with Professors Jian Peng and Kaiyu Guan from the Computer Science (CS) and Natural Resources and Environmental Sciences (NRES) departments to address these challenges. I hope to beat existing statistical models by exploring these ideas, including CNNs and non-aggregated data.
 
 \section{References}
 

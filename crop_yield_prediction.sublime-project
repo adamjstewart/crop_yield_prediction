@@ -9,7 +9,11 @@
                 "*.fls",
                 "*.log",
                 "*.pdf",
+                "*.fdb_latexmk",
+                "*.synctex",
                 "*.synctex.gz",
+                "*.synctex.gz(busy)",
+                "*.pdfsync",
             ],
             "folder_exclude_patterns": [
                 "__pycache__",
