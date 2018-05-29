@@ -61,7 +61,7 @@ def train_input_fn(data, buffer_size, num_epochs, batch_size):
         tf.data.Dataset: the mini-batch to train on
     """
     # Separate the ground truth labels from the features
-    features, labels = data, data.pop('yield')
+    features, labels = data, data['yield']
 
     # Convert the data to a TensorFlow Dataset
     dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))

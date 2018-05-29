@@ -11,7 +11,13 @@ from model.regressor import *
 from utils.data_tools import *
 from utils.io_tools import *
 
+import os
+import sys
 import tensorflow as tf
+
+
+# Find the root directory of the project
+ROOT_DIRECTORY = os.path.realpath(sys.path[0])
 
 
 # Define command-line flags.
@@ -23,20 +29,18 @@ flags.DEFINE_string(
     help="Model to use. Supports ['linear', 'dnn']"
 )
 flags.DEFINE_string(
-    name='loss', default='rmse',
-    help="Loss metric to use. Supports ['rmse', 'r2']"
-)
-flags.DEFINE_string(
     name='cross_validation', default='leave-one-out',
     help="Cross validation technique to perform. "
          "Supports ['leave-one-out', 'forward']"
 )
 flags.DEFINE_string(
-    name='input_file', default='data/Corn_model_data.csv',
+    name='input_file',
+    default=os.path.join(ROOT_DIRECTORY, 'data', 'Corn_model_data.csv'),
     help='Input dataset for yield prediction'
 )
 flags.DEFINE_string(
-    name='output_file', default='results/predictions.csv',
+    name='output_file',
+    default=os.path.join(ROOT_DIRECTORY, 'results', 'predictions.csv'),
     help='Output file to save results in'
 )
 flags.DEFINE_integer(
@@ -92,6 +96,21 @@ def main(args):
 
         model.train(lambda: train_input_fn(
             train_data, FLAGS.buffer_size, FLAGS.num_epochs, FLAGS.batch_size))
+
+        predictions = model.predict(lambda: test_input_fn(train_data))
+
+        # Evaluate the performance
+        labels = train_data['yield']
+        predictions = generator_to_series(predictions, labels.index)
+
+        rmse = metrics.rmse(labels, predictions)
+        r = metrics.r(labels, predictions)
+        R2 = metrics.R2(labels, predictions)
+
+        if FLAGS.verbose:
+            print('RMSE:', rmse)
+            print('r:', r)
+            print('R^2:', R2)
 
         # Test the model
         if FLAGS.verbose:
