@@ -119,6 +119,11 @@ def main(args):
 
     input_data = encode_cols(input_data)
 
+    # Initialize a new regression model
+    model = get_regressor(
+        args.model, args.alpha, args.c, args.epsilon,
+        args.verbose, args.jobs)
+
     # For each testing year...
     for test_year in range(args.start_test_year, args.end_test_year + 1):
         if args.verbose:
@@ -131,11 +136,6 @@ def main(args):
 
         train_X, train_y = train_data, train_data.pop('yield')
         test_X, test_y = test_data, test_data.pop('yield')
-
-        # Initialize a new regression model
-        model = get_regressor(
-            args.model, args.alpha, args.c, args.epsilon,
-            args.verbose, args.jobs)
 
         # Train the model
         if args.verbose:
