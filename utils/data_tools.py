@@ -3,37 +3,6 @@
 import pandas as pd
 
 
-def filter_evi(data):
-    """Filters dataset by removing states without any EVI data.
-
-    Parameters:
-        data (pandas.DataFrame): the entire dataset
-
-    Returns:
-        pandas.DataFrame: the data for states with EVI data
-    """
-    # List of states for which we have EVI data
-    states = data.loc[data['evi6'].notna(), 'State']
-    states = states.unique()
-
-    # Filter data down to these states
-    data = data[data['State'].isin(states)]
-
-    return data
-
-
-def filter_area(data):
-    """Filters dataset by removing counties without any growing area.
-
-    Parameters:
-        data (pandas.DataFrame): the entire dataset
-
-    Returns:
-        pandas.DataFrame: the data for counties with growing area
-    """
-    return data[data['area'].notna()]
-
-
 def drop_cols(data):
     """Drops columns we don't care about from the dataset.
 
@@ -41,9 +10,9 @@ def drop_cols(data):
         data (pandas.DataFrame): the entire dataset
     """
     labels = [
+        'County',
         'yield_irr', 'yield_noirr',
         'area_irr', 'area_noirr',
-        'land_area',
     ]
 
     data.drop(columns=labels, inplace=True)
@@ -58,65 +27,66 @@ def drop_nans(data):
     data.dropna(inplace=True)
 
 
-def get_years(data):
-    """Returns a list of years in the dataset in ascending order.
+def encode_cols(data):
+    """Converts categorical columns into indicator columns using
+    a one-hot encoding.
 
     Parameters:
-        data (pandas.DataFrame): the entire dataset
+        data (pandas.DataFrame): the original dataset
 
     Returns:
-        np.ndarray: the years present in the dataset
+        pandas.DataFrame: the transformed dataset
     """
-    years = data['year'].unique()
-
-    # Reverse order
-    years = years[::-1]
-
-    return years
+    return pd.get_dummies(data, prefix=['FIPS', None],
+                          columns=['FIPS', 'State'])
 
 
-def split_dataset(data, year, cross_validation):
+def split_dataset(data, start_train_year, end_train_year,
+                  test_year, cross_validation):
     """Splits the dataset into training data and testing data.
 
     Parameters:
         data (pandas.DataFrame): the entire dataset
-        year (int): the current year we are interested in
-        cross_validation (str): the cross validation technique to perform.
-            Supports ['leave-one-out', 'forward'].
+        start_train_year (int): the year to start training from
+        end_train_year (int): the year to end training with
+        test_year (int): the year to test on
+        cross_validation (str): the cross-validation technique to perform
 
     Returns:
         pandas.DataFrame: the training data
         pandas.DataFrame: the testing data
     """
+    # Only train on a subset of the data
+    train_data = data[start_train_year <= data['year']]
+    train_data = data[data['year'] <= end_train_year]
+
     if cross_validation == 'leave-one-out':
         # Train on every year except the test year
-        train_data = data[data['year'] != year]
+        train_data = train_data[train_data['year'] != test_year]
     elif cross_validation == 'forward':
         # Train on every year before the test year
-        train_data = data[data['year'] < year]
+        train_data = train_data[train_data['year'] < test_year]
     else:
-        msg = "cross_validation only supports 'leave-one-out' and 'forward'"
-        raise ValueError(msg)
+        msg = "Unsupported cross_validation technique: '{}'"
+        raise ValueError(msg.format(cross_validation))
 
-    # Test on the current year
-    test_data = data[data['year'] == year]
+    # Test on the test year
+    test_data = data[data['year'] == test_year]
 
     return train_data, test_data
 
 
-def generator_to_series(predictions, index):
-    """Converts a generator of dicts of arrays to a Series.
+def array_to_series(predictions, index):
+    """Converts an array of predictions to a Series.
 
     Parameters:
-        predictions (generator): the predictions from the regressor
-        index (array): the index of the data
+        predictions (numpy.ndarray): the predictions from the regressor
+        index (numpy.ndarray): the index of the data
 
     Returns:
         pandas.Series: the predicted series data
     """
-    data = [float(pred['predictions']) for pred in predictions]
-
-    return pd.Series(data, index)
+    return pd.Series(predictions, index)
 
 
 def save_predictions(data, predictions, year):

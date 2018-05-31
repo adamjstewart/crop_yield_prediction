@@ -1,5 +1,5 @@
 # crop_yield_prediction
-:corn: Deep learning model for crop yield prediction
+:corn: Machine learning model for crop yield prediction
 
 ## Installation
 

@@ -1,91 +1,32 @@
 """Functions for initializing the regressor."""
 
-import tempfile
-import tensorflow as tf
+from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.svm import SVR
+from sklearn.ensemble import RandomForestRegressor
 
 
-def get_regressor(model):
+def get_regressor(model, alpha=1, c=1, epsilon=0.1, verbose=0, jobs=-1):
     """Initializes a new regressor.
 
     Parameters:
-        model (str): the regression model. Supports ['linear', 'dnn']
+        model (str): the regression model
+        alpha (float): the regularization strength
+        c (float): SVR penalty parameter
+        epsilon (float): SVR epsilon
+        verbose (int): the verbosity level
+        jobs (int): the number of jobs to run in parallel
 
     Returns:
-        tf.estimator.Estimator: the regressor
+        regressor: the regressor
     """
-    feature_columns = get_feature_columns()
-    model_dir = tempfile.mkdtemp()
-
     if model == 'linear':
-        return tf.estimator.LinearRegressor(feature_columns, model_dir)
-    elif model == 'dnn':
-        return tf.estimator.DNNRegressor([64, 32], feature_columns, model_dir)
+        return LinearRegression(n_jobs=jobs)
+    elif model == 'ridge':
+        return Ridge(alpha=alpha)
+    elif model == 'svr':
+        return SVR(C=c, epsilon=epsilon, verbose=verbose)
+    elif model == 'random-forest':
+        return RandomForestRegressor(n_jobs=jobs, verbose=verbose)
     else:
-        msg = "model only supports 'linear' and 'dnn'"
-        raise ValueError(msg)
-
-
-def get_feature_columns():
-    """Returns a list of feature columns to train on.
-
-    Returns:
-        list: feature columns
-    """
-    features = [
-        'year', 'FIPS', 'area',
-        'tmax5', 'tmax6', 'tmax7', 'tmax8', 'tmax9',
-        'tmin5', 'tmin6', 'tmin7', 'tmin8', 'tmin9',
-        'tave5', 'tave6', 'tave7', 'tave8', 'tave9',
-        'vpdmax5', 'vpdmax6', 'vpdmax7', 'vpdmax8', 'vpdmax9',
-        'vpdmin5', 'vpdmin6', 'vpdmin7', 'vpdmin8', 'vpdmin9',
-        'vpdave5', 'vpdave6', 'vpdave7', 'vpdave8', 'vpdave9',
-        'precip5', 'precip6', 'precip7', 'precip8', 'precip9',
-        'evi5', 'evi6', 'evi7', 'evi8', 'evi9',
-        'lstmax5', 'lstmax6', 'lstmax7', 'lstmax8', 'lstmax9',
-        'om', 'awc',
-    ]
-
-    return list(map(tf.feature_column.numeric_column, features))
-
-
-def train_input_fn(data, buffer_size, num_epochs, batch_size):
-    """Provides input data for the training phase.
-
-    Parameters:
-        data (pandas.DataFrame): the entire dataset
-        buffer_size (int): the number of elements of the dataset to sample from
-        num_epochs (int): the number of passes through the entire dataset
-        batch_size (int): the number of samples in each mini-batch
-
-    Returns:
-        tf.data.Dataset: the mini-batch to train on
-    """
-    # Separate the ground truth labels from the features
-    features, labels = data, data['yield']
-
-    # Convert the data to a TensorFlow Dataset
-    dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
-
-    # Sample from a random subset of the data
-    if buffer_size:
-        dataset = dataset.shuffle(buffer_size)
-
-    # Repeat training on this subset
-    dataset = dataset.repeat(num_epochs)
-
-    # Sample a single mini-batch
-    dataset = dataset.batch(batch_size)
-
-    return dataset
-
-
-def test_input_fn(data):
-    """Provides input data for the testing phase.
-
-    Parameters:
-        data (pandas.DataFrame): the entire dataset
-
-    Returns:
-        tf.data.Dataset: the mini-batch to test on
-    """
-    return train_input_fn(data, False, 1, 1)
+        msg = "Unsupported regression model: '{}'"
+        raise ValueError(msg.format(model))
