@@ -10,7 +10,7 @@ def drop_cols(data):
         data (pandas.DataFrame): the entire dataset
     """
     labels = [
-        'County',
+        'County', 'State',
         'yield_irr', 'yield_noirr',
         'area_irr', 'area_noirr',
     ]
@@ -37,8 +37,7 @@ def encode_cols(data):
     Returns:
         pandas.DataFrame: the transformed dataset
     """
-    return pd.get_dummies(data, prefix=['FIPS', None],
-                          columns=['FIPS', 'State'])
+    return pd.get_dummies(data, prefix=['FIPS'], columns=['FIPS'])
 
 
 def split_dataset(data, start_train_year, end_train_year,
