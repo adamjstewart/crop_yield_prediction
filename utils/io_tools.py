@@ -1,5 +1,6 @@
 """Input/output tools for reading and writing CSV files."""
 
+import colorama
 import pandas as pd
 import pathlib
 
@@ -15,7 +16,7 @@ def read_csv(filename, verbose=False):
         pandas.DataFrame: the dataset
     """
     if verbose:
-        print('\nReading {}...'.format(filename))
+        print(colorama.Fore.BLUE + '\nReading {}...'.format(filename))
 
     return pd.read_csv(filename)
 
@@ -29,7 +30,7 @@ def write_csv(data, filename, verbose=False):
         verbose (bool): whether or not to print messages
     """
     if verbose:
-        print('\nWriting {}...'.format(filename))
+        print(colorama.Fore.BLUE + '\nWriting {}...'.format(filename))
 
     # Create directory if it does not already exist
     filename = pathlib.Path(filename)

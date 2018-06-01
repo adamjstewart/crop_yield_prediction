@@ -6,7 +6,7 @@ Machine learning model for crop yield prediction.
 Written by Adam J. Stewart, 2018.
 """
 
-from model import metrics
+from model.metrics import *
 from model.regressor import *
 from utils.data_tools import *
 from utils.io_tools import *
@@ -127,7 +127,7 @@ def main(args):
     # For each testing year...
     for test_year in range(args.start_test_year, args.end_test_year + 1):
         if args.verbose:
-            print(colorama.Fore.RED + '\nYear:', test_year)
+            print(colorama.Fore.GREEN + '\nYear:', test_year)
 
         # Split the dataset into training and testing data
         train_data, test_data = split_dataset(
@@ -139,7 +139,7 @@ def main(args):
 
         # Train the model
         if args.verbose:
-            print(colorama.Fore.GREEN + '\nTraining...\n')
+            print(colorama.Fore.BLUE + '\nTraining...\n')
 
         model.fit(train_X, train_y)
 
@@ -147,31 +147,19 @@ def main(args):
         predictions = array_to_series(predictions, train_y.index)
 
         # Evaluate the performance
-        rmse = metrics.rmse(train_y, predictions)
-        r = metrics.r(train_y, predictions)
-        R2 = metrics.R2(train_y, predictions)
-
         if args.verbose:
-            print(colorama.Fore.CYAN + 'RMSE:', rmse)
-            print(colorama.Fore.CYAN + 'r:', r)
-            print(colorama.Fore.CYAN + 'R^2:', R2)
+            print_statistics(train_y, predictions)
 
         # Test the model
         if args.verbose:
-            print(colorama.Fore.GREEN + '\nTesting...\n')
+            print(colorama.Fore.BLUE + '\nTesting...\n')
 
         predictions = model.predict(test_X)
         predictions = array_to_series(predictions, test_y.index)
 
         # Evaluate the performance
-        rmse = metrics.rmse(test_y, predictions)
-        r = metrics.r(test_y, predictions)
-        R2 = metrics.R2(test_y, predictions)
-
         if args.verbose:
-            print(colorama.Fore.CYAN + 'RMSE:', rmse)
-            print(colorama.Fore.CYAN + 'r:', r)
-            print(colorama.Fore.CYAN + 'R^2:', R2)
+            print_statistics(test_y, predictions)
 
         save_predictions(output_data, predictions, test_year)
 
@@ -179,16 +167,10 @@ def main(args):
     labels = input_data['yield']
     predictions = output_data['predicted yield']
 
-    rmse = metrics.rmse(labels, predictions)
-    r = metrics.r(labels, predictions)
-    R2 = metrics.R2(labels, predictions)
-
     if args.verbose:
-        print(colorama.Fore.RED + '\nOverall Performance\n')
+        print(colorama.Fore.GREEN + '\nOverall Performance\n')
 
-        print(colorama.Fore.CYAN + 'RMSE:', rmse)
-        print(colorama.Fore.CYAN + 'r:', r)
-        print(colorama.Fore.CYAN + 'R^2:', R2)
+        print_statistics(labels, predictions)
 
     # Write the resulting dataset
     write_csv(output_data, args.output_file, args.verbose)
