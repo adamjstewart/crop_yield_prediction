@@ -61,6 +61,6 @@ def print_statistics(labels, predictions):
         r2_classic_str = colorama.Fore.RED + r2_classic_str
 
     # Print the results
-    print(colorama.Fore.CYAN + 'RMSE:        ', rmse_str)
-    print(colorama.Fore.CYAN + 'R2 (r * r):  ', r2_str)
-    print(colorama.Fore.CYAN + 'R2 (classic):', r2_classic_str)
+    print(colorama.Fore.CYAN + '    RMSE:        ', rmse_str)
+    print(colorama.Fore.CYAN + '    R2 (r * r):  ', r2_str)
+    print(colorama.Fore.CYAN + '    R2 (classic):', r2_classic_str)

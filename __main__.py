@@ -168,7 +168,7 @@ def main(args):
     predictions = output_data['predicted yield']
 
     if args.verbose:
-        print(colorama.Fore.GREEN + '\nOverall Performance\n')
+        print(colorama.Fore.GREEN + '\nOverall Performance:\n')
 
         print_statistics(labels, predictions)
 
