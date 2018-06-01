@@ -145,6 +145,7 @@ def main(args):
 
         predictions = model.predict(train_X)
         predictions = array_to_series(predictions, train_y.index)
+        predictions = predictions.clip_lower(0)
 
         # Evaluate the performance
         if args.verbose:
@@ -156,6 +157,7 @@ def main(args):
 
         predictions = model.predict(test_X)
         predictions = array_to_series(predictions, test_y.index)
+        predictions = predictions.clip_lower(0)
 
         # Evaluate the performance
         if args.verbose:

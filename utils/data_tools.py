@@ -13,6 +13,7 @@ def drop_cols(data):
         'County', 'State',
         'yield_irr', 'yield_noirr',
         'area_irr', 'area_noirr',
+        'om', 'awc',
     ]
 
     data.drop(columns=labels, inplace=True)
