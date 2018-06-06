@@ -114,6 +114,7 @@ def main(args):
     # Data preprocessing
     drop_cols(input_data)
     drop_nans(input_data)
+    input_data = drop_unique(input_data)
 
     output_data = input_data.copy()
 
@@ -136,6 +137,9 @@ def main(args):
 
         train_X, train_y = train_data, train_data.pop('yield')
         test_X, test_y = test_data, test_data.pop('yield')
+
+        # Data preprocessing
+        train_X, test_X = standardize(train_X, test_X)
 
         # Train the model
         if args.verbose:

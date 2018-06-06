@@ -20,7 +20,8 @@ def get_regressor(model, alpha=1, c=1, epsilon=0.1, verbose=0, jobs=-1):
         regressor: the regressor
     """
     if model == 'linear':
-        return LinearRegression(n_jobs=jobs)
+        return LinearRegression(
+            fit_intercept=False, normalize=False, copy_X=False, n_jobs=jobs)
     elif model == 'ridge':
         return Ridge(alpha=alpha)
     elif model == 'svr':

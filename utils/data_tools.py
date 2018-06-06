@@ -1,5 +1,7 @@
 """Data tools for preprocessing the dataset."""
 
+from sklearn.preprocessing import StandardScaler
+
 import pandas as pd
 
 
@@ -12,8 +14,8 @@ def drop_cols(data):
     labels = [
         'County', 'State',
         'yield_irr', 'yield_noirr',
-        'area_irr', 'area_noirr',
-        'om', 'awc',
+        'area', 'area_irr', 'area_noirr',
+        'om', 'awc', 'land_area',
     ]
 
     data.drop(columns=labels, inplace=True)
@@ -26,6 +28,20 @@ def drop_nans(data):
         data (pandas.DataFrame): the entire dataset
     """
     data.dropna(inplace=True)
+
+
+def drop_unique(data):
+    """Drops counties that only occur once in the dataset.
+
+    It is not possible to learn a county fixed effect for these counties.
+
+    Parameters:
+        data (pandas.DataFrame): the entire dataset
+
+    Returns:
+        (pandas.DataFrame): the smaller dataset
+    """
+    return data[data.duplicated(subset=['FIPS'], keep=False)]
 
 
 def encode_cols(data):
@@ -73,7 +89,35 @@ def split_dataset(data, start_train_year, end_train_year,
     # Test on the test year
     test_data = data[data['year'] == test_year]
 
-    return train_data, test_data
+    return train_data.copy(), test_data.copy()
+
+
+def standardize(train_X, test_X):
+    """Standardizes the dataset.
+
+    Subtracts the mean and divides by the standard deviation of
+    each numerical feature.
+
+    Parameters:
+        train_X (pandas.DataFrame): the training data
+        test_X (pandas.DataFrame): the testing data
+
+    Returns:
+        train_X (pandas.DataFrame): the standardized training data
+        test_X (pandas.DataFrame): the standardized testing data
+    """
+    scaler = StandardScaler()
+
+    # Compute the mean and standard deviation of the training set
+    scaler.fit(train_X.loc[:, 'year':'lstmax9'])
+
+    # Transform the training and testing sets
+    train_X.loc[:, 'year':'lstmax9'] = scaler.transform(
+        train_X.loc[:, 'year':'lstmax9'])
+    test_X.loc[:, 'year':'lstmax9'] = scaler.transform(
+        test_X.loc[:, 'year':'lstmax9'])
+
+    return train_X, test_X
 
 
 def array_to_series(predictions, index):
