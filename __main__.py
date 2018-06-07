@@ -53,7 +53,7 @@ def set_up_parser():
     parser.add_argument(
         '-m', '--model',
         default='linear',
-        choices=['linear', 'ridge', 'svr', 'random-forest'],
+        choices=['linear', 'mlp', 'ridge', 'random-forest', 'svr'],
         help='regression model to use')
     parser.add_argument(
         '--cross-validation',
