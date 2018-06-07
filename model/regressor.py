@@ -1,7 +1,7 @@
 """Functions for initializing the regressor."""
 
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.linear_model import Lasso, LinearRegression, Ridge
 from sklearn.neural_network import MLPRegressor
 from sklearn.svm import SVR
 
@@ -20,7 +20,10 @@ def get_regressor(model, alpha=1.0, c=1.0, epsilon=0.1, verbose=0, jobs=-1):
     Returns:
         regressor: the regressor
     """
-    if model == 'linear':
+    if model == 'lasso':
+        return Lasso(
+            alpha=alpha, fit_intercept=False, normalize=False, copy_X=False)
+    elif model == 'linear':
         return LinearRegression(
             fit_intercept=False, normalize=False, copy_X=False, n_jobs=jobs)
     elif model == 'mlp':
