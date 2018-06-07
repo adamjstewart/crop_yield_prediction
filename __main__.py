@@ -111,7 +111,7 @@ def main(args):
     # Read in the dataset
     input_data = read_csv(args.input_file, args.verbose)
 
-    # Data preprocessing
+    # Remove data that we don't want to train on
     drop_cols(input_data)
     drop_nans(input_data)
     input_data = drop_unique(input_data)
@@ -135,10 +135,13 @@ def main(args):
             input_data, args.start_train_year, args.end_train_year,
             test_year, args.cross_validation)
 
+        # Shuffle the training data
+        train_data = shuffle(train_data)
+
         train_X, train_y = train_data, train_data.pop('yield')
         test_X, test_y = test_data, test_data.pop('yield')
 
-        # Data preprocessing
+        # Standardize the training and testing features
         train_X, test_X = standardize(train_X, test_X)
 
         # Train the model

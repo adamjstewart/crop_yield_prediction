@@ -1,8 +1,7 @@
 """Data tools for preprocessing the dataset."""
 
-from sklearn.preprocessing import StandardScaler
-
 import pandas as pd
+import sklearn
 
 
 def drop_cols(data):
@@ -92,6 +91,18 @@ def split_dataset(data, start_train_year, end_train_year,
     return train_data.copy(), test_data.copy()
 
 
+def shuffle(data):
+    """Shuffles the dataset.
+
+    Parameters:
+        data (pandas.DataFrame): the original dataset
+
+    Returns:
+        pandas.DataFrame: the shuffled dataset
+    """
+    return sklearn.utils.shuffle(data)
+
+
 def standardize(train_X, test_X):
     """Standardizes the dataset.
 
@@ -106,7 +117,7 @@ def standardize(train_X, test_X):
         train_X (pandas.DataFrame): the standardized training data
         test_X (pandas.DataFrame): the standardized testing data
     """
-    scaler = StandardScaler()
+    scaler = sklearn.preprocessing.StandardScaler()
 
     # Compute the mean and standard deviation of the training set
     scaler.fit(train_X.loc[:, 'year':'lstmax9'])
