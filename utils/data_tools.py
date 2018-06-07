@@ -15,6 +15,10 @@ def drop_cols(data):
         'yield_irr', 'yield_noirr',
         'area', 'area_irr', 'area_noirr',
         'om', 'awc', 'land_area',
+        'tmax5', 'tmax6', 'tmax7', 'tmax8', 'tmax9',
+        'vpdmax5', 'vpdmax6', 'vpdmax7', 'vpdmax8', 'vpdmax9',
+        'vpdmin5', 'vpdmin6', 'vpdmin7', 'vpdmin8', 'vpdmin9',
+        'vpdave5', 'vpdave6', 'vpdave7', 'vpdave8', 'vpdave9',
     ]
 
     data.drop(columns=labels, inplace=True)
