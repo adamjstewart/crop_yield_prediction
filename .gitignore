@@ -2,7 +2,6 @@ notes.txt
 
 # Python files
 __pycache__/
-func_crop_model.py
 
 # Data files
 data/
