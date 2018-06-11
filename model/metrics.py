@@ -9,9 +9,23 @@ import sklearn
 BSH_AC_TO_T_HA = 0.06277
 
 # Metrics to beat (from Yan Li's paper)
-BEST_RMSE = 1.008
-BEST_R2 = 0.791
-BEST_R2_CLASSIC = 0.757
+BEST_RMSE = {
+    'combined': 1.027,
+    'median': 0.986,
+    'mean': 1.008
+}
+
+BEST_R2 = {
+    'combined': 0.823,
+    'median': 0.790,
+    'mean': 0.791
+}
+
+BEST_R2_CLASSIC = {
+    'combined': 0.823,  # ?
+    'median': 0.749,
+    'mean': 0.757
+}
 
 
 def bushels_per_acre_to_tons_per_hectare(series):
@@ -28,12 +42,17 @@ def bushels_per_acre_to_tons_per_hectare(series):
     return series * BSH_AC_TO_T_HA
 
 
-def print_statistics(labels, predictions):
-    """Prints the RMSE, R2 (r * r), and R2 (classic) performance metrics.
+def calculate_statistics(labels, predictions):
+    """Calculates the RMSE, R2 (r * r), and R2 (classic) performance metrics.
 
     Parameters:
         labels (pandas.Series): the ground truth labels
         predictions (pandas.Series): the predicted labels
+
+    Returns:
+        float: RMSE
+        float: R2 (r * r)
+        float: R2 (classic)
     """
     # Convert from bsh/ac to t/ha
     labels = bushels_per_acre_to_tons_per_hectare(labels)
@@ -46,6 +65,18 @@ def print_statistics(labels, predictions):
     r2 = r ** 2
     r2_classic = sklearn.metrics.r2_score(labels, predictions)
 
+    return rmse, r2, r2_classic
+
+
+def print_statistics(rmse, r2, r2_classic, type='combined'):
+    """Prints the RMSE, R2 (r * r), and R2 (classic) performance metrics.
+
+    Parameters:
+        rmse (float): RMSE
+        r2 (float): R2 (r * r)
+        r2_classic (float): R2 (classic)
+        type (str): valid values: ['combined', 'median', 'mean']
+    """
     # Convert to a formatted string
     string = '{:6.3f}'
     rmse_str = string.format(rmse)
@@ -53,11 +84,11 @@ def print_statistics(labels, predictions):
     r2_classic_str = string.format(r2_classic)
 
     # Compare the results against Yan Li's results
-    if rmse > BEST_RMSE:
+    if rmse > BEST_RMSE[type]:
         rmse_str = colorama.Fore.RED + rmse_str
-    if r2 < BEST_R2:
+    if r2 < BEST_R2[type]:
         r2_str = colorama.Fore.RED + r2_str
-    if r2_classic < BEST_R2_CLASSIC:
+    if r2_classic < BEST_R2_CLASSIC[type]:
         r2_classic_str = colorama.Fore.RED + r2_classic_str
 
     # Print the results

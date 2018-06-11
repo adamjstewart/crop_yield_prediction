@@ -14,6 +14,7 @@ from utils.io_tools import *
 import argparse
 import colorama
 import os
+import statistics
 import sys
 
 
@@ -118,12 +119,21 @@ def main(args):
 
     output_data = input_data.copy()
 
+    # Convert categorical variables to a one-hot encoding
     input_data = encode_cols(input_data)
 
     # Initialize a new regression model
     model = get_regressor(
         args.model, args.alpha, args.c, args.epsilon,
         args.verbose, args.jobs)
+
+    cumulative_training_rmse = []
+    cumulative_training_r2 = []
+    cumulative_training_r2_classic = []
+
+    cumulative_testing_rmse = []
+    cumulative_testing_r2 = []
+    cumulative_testing_r2_classic = []
 
     # For each testing year...
     for test_year in range(args.start_test_year, args.end_test_year + 1):
@@ -155,8 +165,14 @@ def main(args):
         predictions = predictions.clip_lower(0)
 
         # Evaluate the performance
+        rmse, r2, r2_classic = calculate_statistics(train_y, predictions)
+
+        cumulative_training_rmse.append(rmse)
+        cumulative_training_r2.append(r2)
+        cumulative_training_r2_classic.append(r2_classic)
+
         if args.verbose:
-            print_statistics(train_y, predictions)
+            print_statistics(rmse, r2, r2_classic)
 
         # Test the model
         if args.verbose:
@@ -167,19 +183,65 @@ def main(args):
         predictions = predictions.clip_lower(0)
 
         # Evaluate the performance
+        rmse, r2, r2_classic = calculate_statistics(test_y, predictions)
+
+        cumulative_testing_rmse.append(rmse)
+        cumulative_testing_r2.append(r2)
+        cumulative_testing_r2_classic.append(r2_classic)
+
         if args.verbose:
-            print_statistics(test_y, predictions)
+            print_statistics(rmse, r2, r2_classic)
 
         save_predictions(output_data, predictions, test_year)
 
-    # Calculate overall performance
+    # Evaluate the overall performance
     labels = input_data['yield']
     predictions = output_data['predicted yield']
 
-    if args.verbose:
-        print(colorama.Fore.GREEN + '\nOverall Performance:\n')
+    combined_rmse, combined_r2, combined_r2_classic = \
+        calculate_statistics(labels, predictions)
 
-        print_statistics(labels, predictions)
+    median_training_rmse = statistics.median(cumulative_training_rmse)
+    median_training_r2 = statistics.median(cumulative_training_r2)
+    median_training_r2_classic = \
+        statistics.median(cumulative_training_r2_classic)
+
+    mean_training_rmse = statistics.mean(cumulative_training_rmse)
+    mean_training_r2 = statistics.mean(cumulative_training_r2)
+    mean_training_r2_classic = statistics.mean(cumulative_training_r2_classic)
+
+    median_testing_rmse = statistics.median(cumulative_testing_rmse)
+    median_testing_r2 = statistics.median(cumulative_testing_r2)
+    median_testing_r2_classic = \
+        statistics.median(cumulative_testing_r2_classic)
+
+    mean_testing_rmse = statistics.mean(cumulative_testing_rmse)
+    mean_testing_r2 = statistics.mean(cumulative_testing_r2)
+    mean_testing_r2_classic = statistics.mean(cumulative_testing_r2_classic)
+
+    if args.verbose:
+        print(colorama.Fore.GREEN + '\nYear:', 'All years')
+
+        print(colorama.Fore.BLUE + '\nTraining...')
+
+        print(colorama.Fore.MAGENTA + '\nMedian Performance:\n')
+        print_statistics(median_training_rmse, median_training_r2,
+                         median_training_r2_classic, type='median')
+        print(colorama.Fore.MAGENTA + '\nMean Performance:\n')
+        print_statistics(mean_training_rmse, mean_training_r2,
+                         mean_training_r2_classic, type='mean')
+
+        print(colorama.Fore.BLUE + '\nTesting...')
+
+        print(colorama.Fore.MAGENTA + '\nCombined Performance:\n')
+        print_statistics(combined_rmse, combined_r2,
+                         combined_r2_classic, type='combined')
+        print(colorama.Fore.MAGENTA + '\nMedian Performance:\n')
+        print_statistics(median_testing_rmse, median_testing_r2,
+                         median_testing_r2_classic, type='median')
+        print(colorama.Fore.MAGENTA + '\nMean Performance:\n')
+        print_statistics(mean_testing_rmse, mean_testing_r2,
+                         mean_testing_r2_classic, type='mean')
 
     # Write the resulting dataset
     write_csv(output_data, args.output_file, args.verbose)
