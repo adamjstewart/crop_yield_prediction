@@ -9,22 +9,41 @@ import sklearn
 BSH_AC_TO_T_HA = 0.06277
 
 # Metrics to beat (from Yan Li's paper)
+# BEST_RMSE = {
+#     'combined': 1.027,
+#     'median': 0.986,
+#     'mean': 1.008
+# }
+
+# BEST_R2 = {
+#     'combined': 0.823,
+#     'median': 0.790,
+#     'mean': 0.791
+# }
+
+# BEST_R2_CLASSIC = {
+#     'combined': 0.823,  # ?
+#     'median': 0.749,
+#     'mean': 0.757
+# }
+
+# Metrics to beat (from linear regression baseline)
 BEST_RMSE = {
-    'combined': 1.027,
-    'median': 0.986,
-    'mean': 1.008
+    'combined': 1.092,
+    'median': 1.007,
+    'mean': 1.056
 }
 
 BEST_R2 = {
-    'combined': 0.823,
-    'median': 0.790,
-    'mean': 0.791
+    'combined': 0.751,
+    'median': 0.765,
+    'mean': 0.746
 }
 
 BEST_R2_CLASSIC = {
-    'combined': 0.823,  # ?
-    'median': 0.749,
-    'mean': 0.757
+    'combined': 0.750,  # ?
+    'median': 0.722,
+    'mean': 0.701
 }
 
 
