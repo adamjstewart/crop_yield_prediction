@@ -48,9 +48,9 @@ def set_up_parser():
         default=os.path.join(ROOT_DIRECTORY, 'data', 'Corn_model_data.csv'),
         help='input dataset for yield prediction')
     parser.add_argument(
-        '-o', '--output-file',
-        default=os.path.join(ROOT_DIRECTORY, 'results', 'predictions.csv'),
-        help='output file to save results in')
+        '-o', '--output-dir',
+        default=os.path.join(ROOT_DIRECTORY, 'results'),
+        help='directory to save results in')
 
     # Model and cross-validation scheme
     parser.add_argument(
@@ -124,7 +124,7 @@ def main(args):
         args (argparse.Namespace): command-line arguments
     """
     # Read in the dataset
-    input_data = read_csv(args.input_file, args.verbose)
+    input_data = read_dataset(args.input_file, args.verbose)
 
     # Remove data that we don't want to train on
     drop_cols(input_data)
@@ -259,7 +259,17 @@ def main(args):
                          mean_testing_r2_classic, type='mean')
 
     # Write the resulting dataset
-    write_csv(output_data, args.output_file, args.verbose)
+    # write_dataset(output_data, args.output_dir, args.model, args.verbose)
+
+    write_performance(args.output_dir, args.model, args.ridge_lasso_alpha,
+                      args.svr_c, args.svr_epsilon, args.svr_kernel,
+                      median_training_rmse, median_training_r2,
+                      median_training_r2_classic, mean_training_rmse,
+                      mean_training_r2, mean_training_r2_classic,
+                      combined_rmse, combined_r2, combined_r2_classic,
+                      median_testing_rmse, median_testing_r2,
+                      median_testing_r2_classic, mean_testing_rmse,
+                      mean_testing_r2, mean_testing_r2_classic, args.verbose)
 
 
 if __name__ == '__main__':

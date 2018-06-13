@@ -41,7 +41,7 @@ BEST_R2 = {
 }
 
 BEST_R2_CLASSIC = {
-    'combined': 0.750,  # ?
+    'combined': 0.750,
     'median': 0.722,
     'mean': 0.701
 }
