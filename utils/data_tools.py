@@ -14,11 +14,7 @@ def drop_cols(data):
         'County', 'State',
         'yield_irr', 'yield_noirr',
         'area', 'area_irr', 'area_noirr',
-        'om', 'awc', 'land_area',
-        'tmax5', 'tmax6', 'tmax7', 'tmax8', 'tmax9',
-        'vpdmax5', 'vpdmax6', 'vpdmax7', 'vpdmax8', 'vpdmax9',
-        'vpdmin5', 'vpdmin6', 'vpdmin7', 'vpdmin8', 'vpdmin9',
-        'vpdave5', 'vpdave6', 'vpdave7', 'vpdave8', 'vpdave9',
+        'land_area',
     ]
 
     data.drop(columns=labels, inplace=True)
@@ -124,13 +120,13 @@ def standardize(train_X, test_X):
     scaler = sklearn.preprocessing.StandardScaler()
 
     # Compute the mean and standard deviation of the training set
-    scaler.fit(train_X.loc[:, 'year':'lstmax9'])
+    scaler.fit(train_X.loc[:, 'year':'awc'])
 
     # Transform the training and testing sets
-    train_X.loc[:, 'year':'lstmax9'] = scaler.transform(
-        train_X.loc[:, 'year':'lstmax9'])
-    test_X.loc[:, 'year':'lstmax9'] = scaler.transform(
-        test_X.loc[:, 'year':'lstmax9'])
+    train_X.loc[:, 'year':'awc'] = scaler.transform(
+        train_X.loc[:, 'year':'awc'])
+    test_X.loc[:, 'year':'awc'] = scaler.transform(
+        test_X.loc[:, 'year':'awc'])
 
     return train_X, test_X
 
