@@ -17,7 +17,7 @@ def drop_cols(data):
         'land_area',
     ]
 
-    data.drop(columns=labels, inplace=True)
+    data.drop(labels, axis=1, inplace=True)
 
 
 def drop_nans(data):
