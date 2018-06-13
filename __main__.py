@@ -42,7 +42,7 @@ def set_up_parser():
         description=__doc__,
         formatter_class=CustomHelpFormatter)
 
-    # Add arguments to the parser
+    # I/O arguments
     parser.add_argument(
         '-i', '--input-file',
         default=os.path.join(ROOT_DIRECTORY, 'data', 'Corn_model_data.csv'),
@@ -51,16 +51,20 @@ def set_up_parser():
         '-o', '--output-file',
         default=os.path.join(ROOT_DIRECTORY, 'results', 'predictions.csv'),
         help='output file to save results in')
+
+    # Model and cross-validation scheme
     parser.add_argument(
         '-m', '--model',
         default='linear',
-        choices=['lasso', 'linear', 'mlp', 'ridge', 'random-forest', 'svr'],
+        choices=['linear', 'ridge', 'lasso', 'svr', 'random-forest', 'mlp'],
         help='regression model to use')
     parser.add_argument(
-        '--cross-validation',
+        '-c', '--cross-validation',
         default='leave-one-out',
         choices=['leave-one-out', 'forward'],
         help='cross-validation technique to perform')
+
+    # Training and testing window
     parser.add_argument(
         '--start-train-year',
         default=2003, type=int,
@@ -77,18 +81,28 @@ def set_up_parser():
         '--end-test-year',
         default=2016, type=int,
         help='year to end testing with')
+
+    # Hyperparameters
     parser.add_argument(
-        '-a', '--alpha',
+        '--ridge-lasso-alpha',
         default=1.0, type=float,
         help='regularization strength')
+
     parser.add_argument(
-        '-c',
+        '--svr-c',
         default=1.0, type=float,
-        help='SVR penalty parameter')
+        help='SVR penalty parameter C of the error term')
     parser.add_argument(
-        '-e', '--epsilon',
+        '--svr-epsilon',
         default=0.1, type=float,
-        help='SVR epsilon')
+        help='epsilon in the epsilon-SVR model')
+    parser.add_argument(
+        '--svr-kernel',
+        default='rbf',
+        choices=['linear', 'poly', 'rbf', 'sigmoid', 'precomputed'],
+        help='SVR kernel type')
+
+    # Utility flags
     parser.add_argument(
         '-v', '--verbose',
         default=3, type=int,
@@ -124,7 +138,8 @@ def main(args):
 
     # Initialize a new regression model
     model = get_regressor(
-        args.model, args.alpha, args.c, args.epsilon,
+        args.model, args.ridge_lasso_alpha,
+        args.svr_c, args.svr_epsilon, args.svr_kernel,
         args.verbose, args.jobs)
 
     cumulative_training_rmse = []
