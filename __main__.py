@@ -89,6 +89,15 @@ def set_up_parser():
         help='regularization strength')
 
     parser.add_argument(
+        '--svr-kernel',
+        default='rbf',
+        choices=['linear', 'poly', 'rbf', 'sigmoid'],
+        help='SVR kernel type')
+    parser.add_argument(
+        '--svr-gamma',
+        default=0.001, type=float,
+        help='SVR kernel coefficient')
+    parser.add_argument(
         '--svr-c',
         default=1.0, type=float,
         help='SVR penalty parameter C of the error term')
@@ -96,11 +105,6 @@ def set_up_parser():
         '--svr-epsilon',
         default=0.1, type=float,
         help='epsilon in the epsilon-SVR model')
-    parser.add_argument(
-        '--svr-kernel',
-        default='rbf',
-        choices=['linear', 'poly', 'rbf', 'sigmoid', 'precomputed'],
-        help='SVR kernel type')
 
     # Utility flags
     parser.add_argument(
@@ -139,7 +143,7 @@ def main(args):
     # Initialize a new regression model
     model = get_regressor(
         args.model, args.ridge_lasso_alpha,
-        args.svr_c, args.svr_epsilon, args.svr_kernel,
+        args.svr_kernel, args.svr_gamma, args.svr_c, args.svr_epsilon,
         args.verbose, args.jobs)
 
     cumulative_training_rmse = []
@@ -262,14 +266,15 @@ def main(args):
     # write_dataset(output_data, args.output_dir, args.model, args.verbose)
 
     write_performance(args.output_dir, args.model, args.ridge_lasso_alpha,
-                      args.svr_c, args.svr_epsilon, args.svr_kernel,
-                      median_training_rmse, median_training_r2,
-                      median_training_r2_classic, mean_training_rmse,
-                      mean_training_r2, mean_training_r2_classic,
-                      combined_rmse, combined_r2, combined_r2_classic,
-                      median_testing_rmse, median_testing_r2,
-                      median_testing_r2_classic, mean_testing_rmse,
-                      mean_testing_r2, mean_testing_r2_classic, args.verbose)
+                      args.svr_kernel, args.svr_gamma, args.svr_c,
+                      args.svr_epsilon, median_training_rmse,
+                      median_training_r2, median_training_r2_classic,
+                      mean_training_rmse, mean_training_r2,
+                      mean_training_r2_classic, combined_rmse, combined_r2,
+                      combined_r2_classic, median_testing_rmse,
+                      median_testing_r2, median_testing_r2_classic,
+                      mean_testing_rmse, mean_testing_r2,
+                      mean_testing_r2_classic, args.verbose)
 
 
 if __name__ == '__main__':

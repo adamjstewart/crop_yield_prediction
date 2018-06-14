@@ -44,7 +44,7 @@ def write_dataset(data, output_dir, model, verbose=False):
 
 
 def write_performance(output_dir, model, ridge_lasso_alpha,
-                      svr_c, svr_epsilon, svr_kernel,
+                      svr_kernel, svr_gamma, svr_c, svr_epsilon,
                       median_training_rmse, median_training_r2,
                       median_training_r2_classic, mean_training_rmse,
                       mean_training_r2, mean_training_r2_classic,
@@ -73,7 +73,7 @@ def write_performance(output_dir, model, ridge_lasso_alpha,
     with open(filename, 'a') as f:
         if model == 'svr':
             f.write(','.join(map(str, [
-                svr_c, svr_epsilon, svr_kernel,
+                svr_kernel, svr_gamma, svr_c, svr_epsilon,
                 median_training_rmse, median_training_r2,
                 median_training_r2_classic, mean_training_rmse,
                 mean_training_r2, mean_training_r2_classic,

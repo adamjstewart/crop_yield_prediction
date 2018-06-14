@@ -6,18 +6,18 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.svm import SVR
 
 
-def get_regressor(model,
-                  ridge_lasso_alpha=1.0,
-                  svr_c=1.0, svr_epsilon=0.1, svr_kernel='rbf',
-                  verbose=0, jobs=-1):
+def get_regressor(model, ridge_lasso_alpha=1.0, svr_kernel='rbf',
+                  svr_gamma='auto', svr_c=1.0, svr_epsilon=0.1, verbose=0,
+                  jobs=-1):
     """Initializes a new regressor.
 
     Parameters:
         model (str): the regression model
         ridge_lasso_alpha (float): the regularization strength
+        svr_kernel (str): SVR kernel type
+        svr_gamma (float or 'auto'): SVR kernel coefficient
         svr_c (float): SVR penalty parameter C of the error term
         svr_epsilon (float): epsilon in the epsilon-SVR model
-        svr_kernel (str): SVR kernel type
         verbose (int): the verbosity level
         jobs (int): the number of jobs to run in parallel
 
@@ -37,8 +37,8 @@ def get_regressor(model,
             copy_X=False)
     elif model == 'svr':
         return SVR(
-            C=svr_c, epsilon=svr_epsilon, kernel=svr_kernel, verbose=verbose,
-            max_iter=-1)
+            kernel=svr_kernel, gamma=svr_gamma, C=svr_c, epsilon=svr_epsilon,
+            verbose=verbose, max_iter=-1)
     elif model == 'random-forest':
         return RandomForestRegressor(n_jobs=jobs, verbose=verbose)
     elif model == 'mlp':
