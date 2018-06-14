@@ -15,7 +15,7 @@ def read_dataset(filename, verbose=False):
     Returns:
         pandas.DataFrame: the dataset
     """
-    if verbose:
+    if verbose > 1:
         print(colorama.Fore.BLUE + '\nReading {}...'.format(filename))
 
     return pd.read_csv(filename)
@@ -33,7 +33,7 @@ def write_dataset(data, output_dir, model, verbose=False):
     dirname = os.path.join(output_dir, model)
     filename = os.path.join(dirname, 'predictions.csv')
 
-    if verbose:
+    if verbose > 1:
         print(colorama.Fore.BLUE + '\nWriting {}...'.format(filename))
 
     # Create directory if it does not already exist
@@ -63,7 +63,7 @@ def write_performance(output_dir, model, ridge_lasso_alpha,
     dirname = os.path.join(output_dir, model)
     filename = os.path.join(dirname, 'performance.csv')
 
-    if verbose:
+    if verbose > 1:
         print(colorama.Fore.BLUE + '\nWriting {}...'.format(filename))
 
     # Create directory if it does not already exist

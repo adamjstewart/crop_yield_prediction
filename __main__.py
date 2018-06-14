@@ -152,7 +152,7 @@ def main(args):
 
     # For each testing year...
     for test_year in range(args.start_test_year, args.end_test_year + 1):
-        if args.verbose:
+        if args.verbose > 0:
             print(colorama.Fore.GREEN + '\nYear:', test_year)
 
         # Split the dataset into training and testing data
@@ -170,7 +170,7 @@ def main(args):
         train_X, test_X = standardize(train_X, test_X)
 
         # Train the model
-        if args.verbose:
+        if args.verbose > 1:
             print(colorama.Fore.BLUE + '\nTraining...\n')
 
         model.fit(train_X, train_y)
@@ -186,11 +186,11 @@ def main(args):
         cumulative_training_r2.append(r2)
         cumulative_training_r2_classic.append(r2_classic)
 
-        if args.verbose:
+        if args.verbose > 1:
             print_statistics(rmse, r2, r2_classic)
 
         # Test the model
-        if args.verbose:
+        if args.verbose > 1:
             print(colorama.Fore.BLUE + '\nTesting...\n')
 
         predictions = model.predict(test_X)
@@ -204,7 +204,7 @@ def main(args):
         cumulative_testing_r2.append(r2)
         cumulative_testing_r2_classic.append(r2_classic)
 
-        if args.verbose:
+        if args.verbose > 1:
             print_statistics(rmse, r2, r2_classic)
 
         save_predictions(output_data, predictions, test_year)
@@ -234,7 +234,7 @@ def main(args):
     mean_testing_r2 = statistics.mean(cumulative_testing_r2)
     mean_testing_r2_classic = statistics.mean(cumulative_testing_r2_classic)
 
-    if args.verbose:
+    if args.verbose > 1:
         print(colorama.Fore.GREEN + '\nYear:', 'All years')
 
         print(colorama.Fore.BLUE + '\nTraining...')
@@ -278,6 +278,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.verbose:
-        colorama.init(autoreset=True)
+        colorama.init(autoreset=True, strip=True)
 
     main(args)
