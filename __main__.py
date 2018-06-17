@@ -12,9 +12,9 @@ from utils.data_tools import *
 from utils.io_tools import *
 
 import argparse
+import collections
 import colorama
 import os
-import statistics
 import sys
 
 
@@ -108,13 +108,23 @@ def set_up_parser():
 
     # Utility flags
     parser.add_argument(
-        '-v', '--verbose',
-        default=3, type=int,
-        help='verbosity level')
-    parser.add_argument(
         '-j', '--jobs',
         default=-1, type=int,
         help='number of jobs to run in parallel')
+    parser.add_argument(
+        '--no-color',
+        action='store_true',
+        help='disable colored output')
+    parser.add_argument(
+        '-v', '--verbose',
+        default=3, type=int,
+        help='verbosity level')
+
+    # Verbosity levels:
+    #   0: print nothing
+    #   1: print year
+    #   2: print testing, debugging
+    #   3: print training
 
     return parser
 
@@ -146,23 +156,17 @@ def main(args):
         args.svr_kernel, args.svr_gamma, args.svr_c, args.svr_epsilon,
         args.verbose, args.jobs)
 
-    cumulative_training_rmse = []
-    cumulative_training_r2 = []
-    cumulative_training_r2_classic = []
+    yearly_stats = collections.defaultdict(dict)
 
-    cumulative_testing_rmse = []
-    cumulative_testing_r2 = []
-    cumulative_testing_r2_classic = []
-
-    # For each testing year...
-    for test_year in range(args.start_test_year, args.end_test_year + 1):
+    # For each year...
+    for year in range(args.start_test_year, args.end_test_year + 1):
         if args.verbose > 0:
-            print(colorama.Fore.GREEN + '\nYear:', test_year)
+            print(colorama.Fore.GREEN + '\nYear:', year)
 
         # Split the dataset into training and testing data
         train_data, test_data = split_dataset(
             input_data, args.start_train_year, args.end_train_year,
-            test_year, args.cross_validation)
+            year, args.cross_validation)
 
         # Shuffle the training data
         train_data = shuffle(train_data)
@@ -184,14 +188,11 @@ def main(args):
         predictions = predictions.clip_lower(0)
 
         # Evaluate the performance
-        rmse, r2, r2_classic = calculate_statistics(train_y, predictions)
+        yearly_stats[year]['train'] = \
+            calculate_statistics(train_y, predictions)
 
-        cumulative_training_rmse.append(rmse)
-        cumulative_training_r2.append(r2)
-        cumulative_training_r2_classic.append(r2_classic)
-
-        if args.verbose > 1:
-            print_statistics(rmse, r2, r2_classic)
+        if args.verbose > 2:
+            print_statistics(yearly_stats[year]['train'])
 
         # Test the model
         if args.verbose > 1:
@@ -202,79 +203,29 @@ def main(args):
         predictions = predictions.clip_lower(0)
 
         # Evaluate the performance
-        rmse, r2, r2_classic = calculate_statistics(test_y, predictions)
-
-        cumulative_testing_rmse.append(rmse)
-        cumulative_testing_r2.append(r2)
-        cumulative_testing_r2_classic.append(r2_classic)
+        yearly_stats[year]['test'] = calculate_statistics(test_y, predictions)
 
         if args.verbose > 1:
-            print_statistics(rmse, r2, r2_classic)
+            print_statistics(yearly_stats[year]['test'])
 
-        save_predictions(output_data, predictions, test_year)
+        save_predictions(output_data, predictions, year)
 
     # Evaluate the overall performance
     labels = input_data['yield']
     predictions = output_data['predicted yield']
 
-    combined_rmse, combined_r2, combined_r2_classic = \
+    overall_stats = calculate_overall_statistics(yearly_stats)
+    overall_stats['test']['combined'] = \
         calculate_statistics(labels, predictions)
 
-    median_training_rmse = statistics.median(cumulative_training_rmse)
-    median_training_r2 = statistics.median(cumulative_training_r2)
-    median_training_r2_classic = \
-        statistics.median(cumulative_training_r2_classic)
-
-    mean_training_rmse = statistics.mean(cumulative_training_rmse)
-    mean_training_r2 = statistics.mean(cumulative_training_r2)
-    mean_training_r2_classic = statistics.mean(cumulative_training_r2_classic)
-
-    median_testing_rmse = statistics.median(cumulative_testing_rmse)
-    median_testing_r2 = statistics.median(cumulative_testing_r2)
-    median_testing_r2_classic = \
-        statistics.median(cumulative_testing_r2_classic)
-
-    mean_testing_rmse = statistics.mean(cumulative_testing_rmse)
-    mean_testing_r2 = statistics.mean(cumulative_testing_r2)
-    mean_testing_r2_classic = statistics.mean(cumulative_testing_r2_classic)
-
-    if args.verbose > 1:
-        print(colorama.Fore.GREEN + '\nYear:', 'All years')
-
-        print(colorama.Fore.BLUE + '\nTraining...')
-
-        print(colorama.Fore.MAGENTA + '\nMedian Performance:\n')
-        print_statistics(median_training_rmse, median_training_r2,
-                         median_training_r2_classic, type='median')
-        print(colorama.Fore.MAGENTA + '\nMean Performance:\n')
-        print_statistics(mean_training_rmse, mean_training_r2,
-                         mean_training_r2_classic, type='mean')
-
-        print(colorama.Fore.BLUE + '\nTesting...')
-
-        print(colorama.Fore.MAGENTA + '\nCombined Performance:\n')
-        print_statistics(combined_rmse, combined_r2,
-                         combined_r2_classic, type='combined')
-        print(colorama.Fore.MAGENTA + '\nMedian Performance:\n')
-        print_statistics(median_testing_rmse, median_testing_r2,
-                         median_testing_r2_classic, type='median')
-        print(colorama.Fore.MAGENTA + '\nMean Performance:\n')
-        print_statistics(mean_testing_rmse, mean_testing_r2,
-                         mean_testing_r2_classic, type='mean')
+    print_overall_statistics(overall_stats, args.verbose)
 
     # Write the resulting dataset
     # write_dataset(output_data, args.output_dir, args.model, args.verbose)
 
     write_performance(args.output_dir, args.model, args.ridge_lasso_alpha,
                       args.svr_kernel, args.svr_gamma, args.svr_c,
-                      args.svr_epsilon, median_training_rmse,
-                      median_training_r2, median_training_r2_classic,
-                      mean_training_rmse, mean_training_r2,
-                      mean_training_r2_classic, combined_rmse, combined_r2,
-                      combined_r2_classic, median_testing_rmse,
-                      median_testing_r2, median_testing_r2_classic,
-                      mean_testing_rmse, mean_testing_r2,
-                      mean_testing_r2_classic, args.verbose)
+                      args.svr_epsilon, overall_stats, args.verbose)
 
 
 if __name__ == '__main__':
@@ -283,6 +234,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.verbose:
-        colorama.init(autoreset=True, strip=True)
+        colorama.init(autoreset=True, strip=args.no_color)
 
     main(args)

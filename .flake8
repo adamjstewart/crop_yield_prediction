@@ -1,5 +1,6 @@
 [flake8]
-# Allow star imports
-ignore = F403,F405
+# - E731: Allow lambda expressions
+# - F403, F405: Allow star imports
+ignore = E731,F403,F405
 # Ignore previous statistical model
-exclude = func_crop_model.py 
+exclude = func_crop_model.py
