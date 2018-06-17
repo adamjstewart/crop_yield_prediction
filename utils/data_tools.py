@@ -1,5 +1,7 @@
 """Data tools for preprocessing the dataset."""
 
+from model.regressor import *
+
 import pandas as pd
 import sklearn
 
@@ -103,6 +105,62 @@ def shuffle(data):
     return sklearn.utils.shuffle(data)
 
 
+def remove_annual_trend(train_data, test_data, jobs=-1):
+    """Removes the annual yield trend from the dataset.
+
+    Assumes a linear relationship between year and yield.
+
+    Returns:
+        pandas.DataFrame: the training data
+        numpy.array: the training years
+        pandas.DataFrame: the testing data
+        numpy.array: the testing years
+        LinearRegression: fitted regressor for annual trend
+    """
+    train_years = train_data.pop('year').values.reshape(-1, 1)
+    train_yield = train_data['yield']
+
+    model = get_linear_regressor(jobs)
+    model.fit(train_years, train_yield)
+
+    annual_trend = model.predict(train_years)
+    annual_trend = array_to_series(annual_trend, train_yield.index)
+    train_data['yield'] -= annual_trend
+
+    test_years = test_data.pop('year').values.reshape(-1, 1)
+    test_yield = test_data['yield']
+
+    annual_trend = model.predict(test_years)
+    annual_trend = array_to_series(annual_trend, test_yield.index)
+    test_data['yield'] -= annual_trend
+
+    return train_data, train_years, test_data, test_years, model
+
+
+def reapply_annual_trend(labels, predictions, years, model):
+    """Re-applies the annual yield trend.
+
+    Parameters:
+        labels (pandas.Series): the ground truth labels
+        predictions (numpy.array): the predicted labels
+        years (pandas.Series): the corresponding years
+        model (LinearRegression): fitted regressor for annual trend
+
+    Returns:
+        pandas.Series: the ground truth labels
+        pandas.Series: the predicted labels
+    """
+    annual_trend = model.predict(years)
+
+    labels += annual_trend
+    predictions += annual_trend
+
+    predictions = array_to_series(predictions, labels.index)
+    predictions = predictions.clip_lower(0)
+
+    return labels, predictions
+
+
 def standardize(train_X, test_X):
     """Standardizes the dataset.
 
@@ -120,13 +178,13 @@ def standardize(train_X, test_X):
     scaler = sklearn.preprocessing.StandardScaler()
 
     # Compute the mean and standard deviation of the training set
-    scaler.fit(train_X.loc[:, 'year':'awc'])
+    scaler.fit(train_X.loc[:, 'tmax5':'awc'])
 
     # Transform the training and testing sets
-    train_X.loc[:, 'year':'awc'] = scaler.transform(
-        train_X.loc[:, 'year':'awc'])
-    test_X.loc[:, 'year':'awc'] = scaler.transform(
-        test_X.loc[:, 'year':'awc'])
+    train_X.loc[:, 'tmax5':'awc'] = scaler.transform(
+        train_X.loc[:, 'tmax5':'awc'])
+    test_X.loc[:, 'tmax5':'awc'] = scaler.transform(
+        test_X.loc[:, 'tmax5':'awc'])
 
     return train_X, test_X
 

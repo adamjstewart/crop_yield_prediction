@@ -171,6 +171,11 @@ def main(args):
         # Shuffle the training data
         train_data = shuffle(train_data)
 
+        # Remove the annual trend
+        train_data, train_years, test_data, test_years, annual_model = \
+            remove_annual_trend(train_data, test_data, args.jobs)
+
+        # Split the data into features and labels
         train_X, train_y = train_data, train_data.pop('yield')
         test_X, test_y = test_data, test_data.pop('yield')
 
@@ -184,8 +189,8 @@ def main(args):
         model.fit(train_X, train_y)
 
         predictions = model.predict(train_X)
-        predictions = array_to_series(predictions, train_y.index)
-        predictions = predictions.clip_lower(0)
+        train_y, predictions = reapply_annual_trend(
+            train_y, predictions, train_years, annual_model)
 
         # Evaluate the performance
         yearly_stats[year]['train'] = \
@@ -199,8 +204,8 @@ def main(args):
             print(colorama.Fore.BLUE + '\nTesting...\n')
 
         predictions = model.predict(test_X)
-        predictions = array_to_series(predictions, test_y.index)
-        predictions = predictions.clip_lower(0)
+        test_y, predictions = reapply_annual_trend(
+            test_y, predictions, test_years, annual_model)
 
         # Evaluate the performance
         yearly_stats[year]['test'] = calculate_statistics(test_y, predictions)

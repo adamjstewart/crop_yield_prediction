@@ -11,6 +11,8 @@ def get_regressor(model, ridge_lasso_alpha=1.0, svr_kernel='rbf',
                   jobs=-1):
     """Initializes a new regressor.
 
+    This is the primary regression model used to fit the data.
+
     Parameters:
         model (str): the regression model
         ridge_lasso_alpha (float): the regularization strength
@@ -47,3 +49,17 @@ def get_regressor(model, ridge_lasso_alpha=1.0, svr_kernel='rbf',
     else:
         msg = "Unsupported regression model: '{}'"
         raise ValueError(msg.format(model))
+
+
+def get_linear_regressor(jobs=-1):
+    """Initializes a new linear regressor.
+
+    This is the secondary regression model used to fit the annual trend.
+
+    Parameters:
+        jobs (int): the number of jobs to run in parallel
+
+    Returns:
+        LinearRegression: the linear regressor
+    """
+    return LinearRegression(n_jobs=jobs)
