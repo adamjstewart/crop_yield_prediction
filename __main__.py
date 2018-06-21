@@ -147,9 +147,6 @@ def main(args):
 
     output_data = input_data.copy()
 
-    # Convert categorical variables to a one-hot encoding
-    input_data = encode_cols(input_data)
-
     # Initialize a new regression model
     model = get_regressor(
         args.model, args.ridge_lasso_alpha,
@@ -175,6 +172,10 @@ def main(args):
         train_data, train_years, test_data, test_years, annual_model = \
             remove_annual_trend(train_data, test_data, args.jobs)
 
+        # Remove the county fixed effect
+        train_data, train_fips, test_data, test_fips, county_fixed_effect = \
+            remove_county_fixed_effect(train_data, test_data)
+
         # Split the data into features and labels
         train_X, train_y = train_data, train_data.pop('yield')
         test_X, test_y = test_data, test_data.pop('yield')
@@ -189,6 +190,9 @@ def main(args):
         model.fit(train_X, train_y)
 
         predictions = model.predict(train_X)
+
+        train_y, predictions = reapply_county_fixed_effect(
+            train_y, predictions, train_fips, county_fixed_effect)
         train_y, predictions = reapply_annual_trend(
             train_y, predictions, train_years, annual_model)
 
@@ -204,6 +208,9 @@ def main(args):
             print(colorama.Fore.BLUE + '\nTesting...\n')
 
         predictions = model.predict(test_X)
+
+        test_y, predictions = reapply_county_fixed_effect(
+            test_y, predictions, test_fips, county_fixed_effect)
         test_y, predictions = reapply_annual_trend(
             test_y, predictions, test_years, annual_model)
 

@@ -45,19 +45,6 @@ def drop_unique(data):
     return data[data.duplicated(subset=['FIPS'], keep=False)]
 
 
-def encode_cols(data):
-    """Converts categorical columns into indicator columns using
-    a one-hot encoding.
-
-    Parameters:
-        data (pandas.DataFrame): the original dataset
-
-    Returns:
-        pandas.DataFrame: the transformed dataset
-    """
-    return pd.get_dummies(data, prefix=['FIPS'], columns=['FIPS'])
-
-
 def split_dataset(data, start_train_year, end_train_year,
                   test_year, cross_validation):
     """Splits the dataset into training data and testing data.
@@ -110,6 +97,11 @@ def remove_annual_trend(train_data, test_data, jobs=-1):
 
     Assumes a linear relationship between year and yield.
 
+    Parameters:
+        train_data (pandas.DataFrame): the training data
+        test_data (pandas.DataFrame): the testing data
+        jobs (int): the number of jobs to run in parallel
+
     Returns:
         pandas.DataFrame: the training data
         numpy.array: the training years
@@ -142,7 +134,7 @@ def reapply_annual_trend(labels, predictions, years, model):
 
     Parameters:
         labels (pandas.Series): the ground truth labels
-        predictions (numpy.array): the predicted labels
+        predictions (pandas.Series): the predicted labels
         years (pandas.Series): the corresponding years
         model (LinearRegression): fitted regressor for annual trend
 
@@ -155,8 +147,67 @@ def reapply_annual_trend(labels, predictions, years, model):
     labels += annual_trend
     predictions += annual_trend
 
-    predictions = array_to_series(predictions, labels.index)
     predictions = predictions.clip_lower(0)
+
+    return labels, predictions
+
+
+def remove_county_fixed_effect(train_data, test_data):
+    """Removes the county fixed effect from the dataset.
+
+    Parameters:
+        train_data (pandas.DataFrame): the training data
+        test_data (pandas.DataFrame): the testing data
+
+    Returns:
+        pandas.DataFrame: the training data
+        pandas.Series: the FIPS county codes for the training data
+        pandas.DataFrame: the testing data
+        pandas.Series: the FIPS county codes for the testing data
+        pandas.Series: the mean and std dev yields for each county
+    """
+    fips_groups = train_data.groupby('FIPS')
+    county_fixed_effect = fips_groups['yield'].aggregate(['mean', 'std'])
+
+    # Counties that only appear once in training set have NaN std dev
+    county_fixed_effect['std'] = county_fixed_effect['std'].fillna(1)
+
+    train_fips = train_data.pop('FIPS')
+    test_fips = test_data.pop('FIPS')
+
+    for index, fip in train_fips.iteritems():
+        train_data.loc[index, 'yield'] -= county_fixed_effect.loc[fip, 'mean']
+        train_data.loc[index, 'yield'] /= county_fixed_effect.loc[fip, 'std']
+
+    for index, fip in test_fips.iteritems():
+        test_data.loc[index, 'yield'] -= county_fixed_effect.loc[fip, 'mean']
+        test_data.loc[index, 'yield'] /= county_fixed_effect.loc[fip, 'std']
+
+    return train_data, train_fips, test_data, test_fips, county_fixed_effect
+
+
+def reapply_county_fixed_effect(labels, predictions, fips,
+                                county_fixed_effect):
+    """Re-applies the county fixed effect.
+
+    Parameters:
+        labels (pandas.Series): the ground truth labels
+        predictions (numpy.array): the predicted labels
+        fips (pandas.Series): the FIPS county codes
+        county_fixed_effect (pandas.Series): the mean and std dev yields
+            for each county
+
+    Returns:
+        pandas.Series: the ground truth labels
+        pandas.Series: the predicted labels
+    """
+    predictions = array_to_series(predictions, labels.index)
+
+    for index, fip in fips.iteritems():
+        labels.loc[index] *= county_fixed_effect.loc[fip, 'std']
+        labels.loc[index] += county_fixed_effect.loc[fip, 'mean']
+        predictions.loc[index] *= county_fixed_effect.loc[fip, 'std']
+        predictions.loc[index] += county_fixed_effect.loc[fip, 'mean']
 
     return labels, predictions
 
