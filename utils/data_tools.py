@@ -109,7 +109,7 @@ def remove_annual_trend(train_data, test_data, jobs=-1):
         numpy.array: the testing years
         LinearRegression: fitted regressor for annual trend
     """
-    train_years = train_data.pop('year').values.reshape(-1, 1)
+    train_years = train_data['year'].values.reshape(-1, 1)
     train_yield = train_data['yield']
 
     model = get_linear_regressor(jobs)
@@ -119,7 +119,7 @@ def remove_annual_trend(train_data, test_data, jobs=-1):
     annual_trend = array_to_series(annual_trend, train_yield.index)
     train_data['yield'] -= annual_trend
 
-    test_years = test_data.pop('year').values.reshape(-1, 1)
+    test_years = test_data['year'].values.reshape(-1, 1)
     test_yield = test_data['yield']
 
     annual_trend = model.predict(test_years)
@@ -142,7 +142,7 @@ def reapply_annual_trend(labels, predictions, years, model):
         pandas.Series: the ground truth labels
         pandas.Series: the predicted labels
     """
-    annual_trend = model.predict(years)
+    annual_trend = model.predict(years.values.reshape(-1, 1))
 
     labels += annual_trend
     predictions += annual_trend
@@ -164,24 +164,29 @@ def remove_county_fixed_effect(train_data, test_data):
         pandas.Series: the FIPS county codes for the training data
         pandas.DataFrame: the testing data
         pandas.Series: the FIPS county codes for the testing data
-        pandas.Series: the mean and std dev yields for each county
+        pandas.DataFrame: the mean and std dev yields for each county
     """
     fips_groups = train_data.groupby('FIPS')
     county_fixed_effect = fips_groups['yield'].aggregate(['mean', 'std'])
 
     # Counties that only appear once in training set have NaN std dev
-    county_fixed_effect['std'] = county_fixed_effect['std'].fillna(1)
+    # Impossible to learn county fixed effect
+    county_fixed_effect.dropna(inplace=True)
 
-    train_fips = train_data.pop('FIPS')
-    test_fips = test_data.pop('FIPS')
+    # Remove counties for which we haven't learned a county fixed effect
+    counties = county_fixed_effect.index
 
-    for index, fip in train_fips.iteritems():
-        train_data.loc[index, 'yield'] -= county_fixed_effect.loc[fip, 'mean']
-        train_data.loc[index, 'yield'] /= county_fixed_effect.loc[fip, 'std']
+    train_data = train_data[train_data['FIPS'].isin(counties)].copy()
+    test_data = test_data[test_data['FIPS'].isin(counties)].copy()
 
-    for index, fip in test_fips.iteritems():
-        test_data.loc[index, 'yield'] -= county_fixed_effect.loc[fip, 'mean']
-        test_data.loc[index, 'yield'] /= county_fixed_effect.loc[fip, 'std']
+    train_fips = train_data['FIPS']
+    test_fips = test_data['FIPS']
+
+    train_data['yield'] -= county_fixed_effect.loc[train_fips, 'mean'].values
+    train_data['yield'] /= county_fixed_effect.loc[train_fips, 'std'].values
+
+    test_data['yield'] -= county_fixed_effect.loc[test_fips, 'mean'].values
+    test_data['yield'] /= county_fixed_effect.loc[test_fips, 'std'].values
 
     return train_data, train_fips, test_data, test_fips, county_fixed_effect
 
@@ -203,11 +208,11 @@ def reapply_county_fixed_effect(labels, predictions, fips,
     """
     predictions = array_to_series(predictions, labels.index)
 
-    for index, fip in fips.iteritems():
-        labels.loc[index] *= county_fixed_effect.loc[fip, 'std']
-        labels.loc[index] += county_fixed_effect.loc[fip, 'mean']
-        predictions.loc[index] *= county_fixed_effect.loc[fip, 'std']
-        predictions.loc[index] += county_fixed_effect.loc[fip, 'mean']
+    labels *= county_fixed_effect.loc[fips, 'std'].values
+    labels += county_fixed_effect.loc[fips, 'mean'].values
+
+    predictions *= county_fixed_effect.loc[fips, 'std'].values
+    predictions += county_fixed_effect.loc[fips, 'mean'].values
 
     return labels, predictions
 

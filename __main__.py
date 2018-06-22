@@ -67,7 +67,7 @@ def set_up_parser():
     # Training and testing window
     parser.add_argument(
         '--start-train-year',
-        default=2003, type=int,
+        default=1981, type=int,
         help='year to start training from')
     parser.add_argument(
         '--end-train-year',
@@ -140,11 +140,6 @@ def main(args):
     # Read in the dataset
     input_data = read_dataset(args.input_file, args.verbose)
 
-    # Remove data that we don't want to train on
-    drop_cols(input_data)
-    drop_nans(input_data)
-    input_data = drop_unique(input_data)
-
     output_data = input_data.copy()
 
     # Initialize a new regression model
@@ -165,9 +160,6 @@ def main(args):
             input_data, args.start_train_year, args.end_train_year,
             year, args.cross_validation)
 
-        # Shuffle the training data
-        train_data = shuffle(train_data)
-
         # Remove the annual trend
         train_data, train_years, test_data, test_years, annual_model = \
             remove_annual_trend(train_data, test_data, args.jobs)
@@ -175,6 +167,20 @@ def main(args):
         # Remove the county fixed effect
         train_data, train_fips, test_data, test_fips, county_fixed_effect = \
             remove_county_fixed_effect(train_data, test_data)
+
+        # Remove data that we don't want to train on
+        drop_cols(train_data)
+        drop_cols(test_data)
+        drop_nans(train_data)
+        drop_nans(test_data)
+
+        train_years = train_data.pop('year')
+        test_years = test_data.pop('year')
+        train_fips = train_data.pop('FIPS')
+        test_fips = test_data.pop('FIPS')
+
+        # Shuffle the training data
+        train_data = shuffle(train_data)
 
         # Split the data into features and labels
         train_X, train_y = train_data, train_data.pop('yield')
@@ -223,7 +229,10 @@ def main(args):
         save_predictions(output_data, predictions, year)
 
     # Evaluate the overall performance
-    labels = input_data['yield']
+    drop_cols(output_data)
+    drop_nans(output_data)
+
+    labels = output_data['yield']
     predictions = output_data['predicted yield']
 
     overall_stats = calculate_overall_statistics(yearly_stats)
