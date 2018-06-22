@@ -73,7 +73,9 @@ def write_performance(output_dir, model, ridge_lasso_alpha,
 
     # Collect hyperparameters
     hyperparameters = []
-    if model == 'svr':
+    if model in ['ridge', 'lasso']:
+        hyperparameters.append(ridge_lasso_alpha)
+    elif model == 'svr':
         hyperparameters.extend([svr_kernel, svr_gamma, svr_c, svr_epsilon])
 
     # Collect statistics
@@ -90,4 +92,4 @@ def write_performance(output_dir, model, ridge_lasso_alpha,
 
     # Write the CSV file
     with open(filename, 'a') as f:
-        f.write(','.join(map(str, hyperparameters + statistics)))
+        f.write(','.join(map(str, hyperparameters + statistics)) + '\n')
